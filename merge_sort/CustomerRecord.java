@@ -1,0 +1,91 @@
+public class CustomerRecord {
+    private int customerId;
+    private String lastName;
+    private String firstName;
+    private int contractId;
+    private String comment;
+    
+    public CustomerRecord() {
+    }
+    
+    public CustomerRecord(int customerId, String lastName, String firstName, int contractId, String comment) {
+        this.customerId = customerId;
+        this.lastName = lastName;
+        this.firstName = firstName;
+        this.contractId = contractId;
+        this.comment = comment;
+    }
+    
+    public static CustomerRecord parseFromLine(String line) {
+        if (line == null || line.trim().isEmpty()) {
+            return null;
+        }
+        
+        if (line.length() < 135) {
+            line = String.format("%-135s", line);
+        }
+        
+        int customerId = Integer.parseInt(line.substring(0, 5));
+        String lastName = line.substring(5, 55).trim();
+        String firstName = line.substring(55, 105).trim();
+        int contractId = Integer.parseInt(line.substring(105, 110));
+        String comment = line.substring(110, 135).trim();
+        
+        return new CustomerRecord(customerId, lastName, firstName, contractId, comment);
+    }
+    
+    public String toFixedWidthString() {
+        String formatted = String.format("%05d%-50s%-50s%05d%-25s",
+            customerId,
+            lastName,
+            firstName,
+            contractId,
+            comment);
+        return formatted.substring(0, Math.min(135, formatted.length())).replaceAll("\\s+$", "");
+    }
+    
+    @Override
+    public String toString() {
+        return toFixedWidthString();
+    }
+    
+    public int getCustomerId() {
+        return customerId;
+    }
+    
+    public void setCustomerId(int customerId) {
+        this.customerId = customerId;
+    }
+    
+    public String getLastName() {
+        return lastName;
+    }
+    
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+    
+    public String getFirstName() {
+        return firstName;
+    }
+    
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+    
+    public int getContractId() {
+        return contractId;
+    }
+    
+    public void setContractId(int contractId) {
+        this.contractId = contractId;
+    }
+    
+    public String getComment() {
+        return comment;
+    }
+    
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+}
