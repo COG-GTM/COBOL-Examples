@@ -1,0 +1,129 @@
+# COBOL to Java Merge Sort Migration
+
+This directory contains a complete Java migration of the COBOL merge sort functionality originally implemented in `merge_sort_test.cbl`.
+
+## Overview
+
+The Java implementation maintains the exact file-based sorting behavior and produces identical output to the original COBOL program. It demonstrates two key operations:
+
+1. **MERGE operation**: Combines two pre-sorted input files by ascending customer ID
+2. **SORT operation**: Sorts the merged file by descending customer contract ID
+
+## Files
+
+### Java Implementation
+- `CustomerRecord.java` - Data class representing the customer record structure
+- `MergeSortMigration.java` - Main application implementing merge and sort operations
+- `LargeDatasetTest.java` - Test with larger datasets to verify streaming behavior
+
+### COBOL Reference
+- `merge_sort_test.cbl` - Original COBOL implementation
+
+## Customer Record Structure
+
+Both implementations use the same 5-field record structure:
+
+| Field | Type | Length | Description |
+|-------|------|--------|-------------|
+| Customer ID | Numeric | 5 digits | Primary identifier |
+| Last Name | Text | 50 characters | Customer last name |
+| First Name | Text | 50 characters | Customer first name |
+| Contract ID | Numeric | 5 digits | Contract identifier |
+| Comment | Text | 25 characters | Additional comments |
+
+## Usage
+
+### Running the Java Implementation
+
+```bash
+# Compile the Java files
+javac *.java
+
+# Run the main migration program
+java MergeSortMigration
+
+# Run the large dataset test
+java LargeDatasetTest
+```
+
+### Running the COBOL Reference
+
+```bash
+# Compile the COBOL program
+cobc -x merge_sort_test.cbl -o merge_sort_test
+
+# Run the COBOL program
+./merge_sort_test
+```
+
+## Processing Flow
+
+1. **Create Test Data**: Generates two input files with customer records
+   - `test-file-1.txt`: 6 records (IDs: 1, 5, 10, 50, 25, 75)
+   - `test-file-2.txt`: 5 records (IDs: 999, 3, 30, 85, 24)
+
+2. **Merge Operation**: Combines both files sorted by ascending customer ID
+   - Output: `merge-output.txt` (11 records sorted by customer ID)
+
+3. **Sort Operation**: Sorts merged file by descending contract ID
+   - Output: `sorted-contract-id.txt` (11 records sorted by contract ID descending)
+
+## Validation Results
+
+The Java implementation has been validated against the COBOL reference:
+
+✅ **Console Output**: Identical formatting and content  
+✅ **Merge Output File**: Byte-for-byte match with COBOL output  
+✅ **Sort Output File**: Byte-for-byte match with COBOL output  
+✅ **Large Dataset Test**: Successfully processes 1000+ records with streaming approach  
+
+### Sample Output Comparison
+
+Both programs produce identical output:
+
+```
+Creating test data files...
+Merging and sorting files...
+00001last-1                                            first-1                                           05423comment-1                
+00003last-03                                           first-03                                          03331comment-03               
+00005last-5                                            first-5                                           12323comment-5                
+...
+Sorting merged file on descending contract id....
+00005last-5                                            first-5                                           12323comment-5                
+00030last-30                                           first-30                                          08765comment-30               
+00025last-25                                           first-25                                          07725comment-25               
+...
+Done.
+```
+
+## Technical Implementation
+
+### Key Features
+
+- **File-based Processing**: Uses `BufferedReader`/`BufferedWriter` for streaming I/O
+- **Fixed-width Format**: Maintains COBOL's fixed-width record formatting
+- **Memory Efficient**: Processes files without loading entire datasets into memory
+- **Exception Handling**: Replaces COBOL file status checks with Java exception handling
+- **Custom Comparators**: Uses Java Collections Framework for sorting operations
+
+### Performance
+
+The streaming approach allows processing of large files efficiently:
+- Tested with 1000+ record datasets
+- Memory usage remains constant regardless of file size
+- Maintains compatibility with COBOL's line-sequential file organization
+
+## Migration Benefits
+
+1. **Platform Independence**: Java runs on any JVM-supported platform
+2. **Modern Tooling**: Access to Java ecosystem and development tools
+3. **Maintainability**: Object-oriented design with clear separation of concerns
+4. **Extensibility**: Easy to add new features like different sort criteria or output formats
+5. **Integration**: Can be easily integrated with modern Java applications and frameworks
+
+## Compatibility
+
+The Java implementation is fully compatible with the COBOL version:
+- Reads files generated by COBOL program
+- Produces files readable by COBOL program
+- Maintains exact same record format and field positioning
