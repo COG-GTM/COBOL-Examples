@@ -79,7 +79,8 @@ public class CustomerRecord {
     }
     
     public String toFixedWidthString() {
-        return customerID + lastName + firstName + contractID + comment;
+        String result = customerID + lastName + firstName + contractID + comment;
+        return result.replaceAll("\\s+$", "");
     }
     
     public static CustomerRecord fromFixedWidthString(String line) {
