@@ -84,8 +84,12 @@ public class CustomerRecord {
     }
     
     public static CustomerRecord fromFixedWidthString(String line) {
-        if (line == null || line.length() < 135) {
+        if (line == null || line.length() < 115) {
             return null;
+        }
+        
+        while (line.length() < 135) {
+            line = line + " ";
         }
         
         CustomerRecord record = new CustomerRecord();
