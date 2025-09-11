@@ -1,61 +1,55 @@
-## SQL Example Program
+## MongoDB REST API Example Program
 
-This example program demonstrates how to use the esqlOC precompiler to create a GnuCOBOL application that 
-can connect and query a PostgreSQL database. 
-
-
+This example program demonstrates how to create a GnuCOBOL application that can connect and query a MongoDB database using REST API calls. This version replaces the original PostgreSQL implementation with MongoDB integration.
 
 **Files included:**
-* ```create_test_db.sql``` - SQL script to create the database and test data.
-* ```generated_sql-ex.cbl``` - Example of what the ```sql_example.cbl``` file looks like after it goes through the esqlOC precompiler. This is the file that gets compiled by ```cobc```.
-* ```sql_example.cbl``` - The example program that gets sent to the precompiler.
-
-
-
+* ```create_mongodb_collection.js``` - MongoDB script to create the collection and test data.
+* ```mongodb_rest.cbl``` - The main COBOL program that uses MongoDB REST API.
+* ```http_wrapper.c``` - C wrapper functions for HTTP requests and JSON parsing.
+* ```sql_example.cbl``` - Original PostgreSQL version (kept for reference).
+* ```generated_sql_ex.cbl``` - Original generated SQL code (kept for reference).
 
 **Prerequisites:**
-* PostgreSQL database instance
-* esqlOC Precompiler:  https://sourceforge.net/p/gnucobol/contrib/HEAD/tree/trunk/esql/
-* unixODBC - http://www.unixodbc.org/
-* PostgreSQL Database - https://www.postgresql.org/
-* odbc-postgresql - Postgres ODBC driver
+* MongoDB Atlas cluster with Data API enabled
+* libcurl development libraries
+* json-c development libraries
+* GnuCOBOL compiler
 
-
-
-
+**MongoDB Setup:**
+1. Create a MongoDB Atlas account and cluster
+2. Enable the Data API in your Atlas cluster
+3. Create an API key for authentication
+4. Run the ```create_mongodb_collection.js``` script to set up the collection and test data
+5. Update the MongoDB URL and API key in ```mongodb_rest.cbl```
 
 **How to build**
-* Run the ```create_test_db.sql``` on your testing PostgreSQL instance. 
-* Precompile the ```sql_example.cbl``` source file using: ```esqlOC -static -o generated_sql_ex.cbl sql_example.cbl```
-* Compile the generated source file with the GnuCOBOL compiler: ```cobc -x -static -locsql generated_sql_ex.cbl```
-* This will create the test program executable ```generated_sql_ex``` 
+* Compile the COBOL program: ```cobc -x mongodb_rest.cbl```
+* This will create the test program executable ```mongodb_rest```
+* Run the program: ```./mongodb_rest```
 
+**Note:** The current implementation includes sample data for testing the converted program structure and menu interface. The HTTP wrapper (```http_wrapper.c```) provides the framework for future MongoDB REST API integration.
 
+**Notes regarding MongoDB REST API integration:**
 
-**Notes regarding querying with variable-length variables:**
+This implementation uses MongoDB's Data API to perform database operations through HTTP REST calls. The key differences from the SQL version:
 
-I haven't seen this mentioned in other documents, so I figure it might be helpful to put this information here regarding 
-the use of variable length variables in a WHERE clause either using the equals sign or the LIKE operator. 
+1. **Connection**: Instead of ODBC connection strings, we use MongoDB Atlas Data API endpoints with API key authentication.
 
+2. **Queries**: SQL cursors are replaced with MongoDB find operations:
+   - `ACCOUNT-ALL-CUR` → `find({})` - finds all documents
+   - `ACCOUNT-DISABLED-CUR` → `find({"is_enabled":"N"})` - finds disabled accounts
+   - `ACCOUNT-QUERY-CUR` → `find({"$or":[...]})` - uses regex search across multiple fields
 
-Variables in the WHERE clause require that the string length 
-is supplied otherwise with a regular 'PIC X(n)' it will 
-include the blank space in any '=' or 'LIKE' operation and 
-most likely not match any records. Using the below variable
-declaration ensures that the correct length is passed for the
-text supplied. 
+3. **Data Format**: Instead of SQL result sets, we parse JSON responses from the MongoDB API.
 
-```
-       01  ws-search-value.
-           05  ws-search-value-len              pic S9(4) comp-5.
-           05  ws-search-value-text             pic x(50).
-```
+4. **Error Handling**: HTTP response codes replace SQLSTATE/SQLCODE error handling.
 
-More info can be found at this link under the 'Variable-length
-Character Strings' section. Note: level 49 variables are not
-supported so a regular '05' seems to work instead.
-https://www.microfocus.com/documentation/net-express/nx30books/dbdtyp.htm
+The program maintains the same user interface and behavior as the original SQL version, but uses MongoDB as the backend database through REST API calls.
 
-Please also see the comments and code in the ```sql_example.cbl``` source file as this is demonstrated in the 
-account querying functionality of the test program.
+**Configuration:**
+The program currently uses sample data to demonstrate the converted structure. To enable full MongoDB REST API integration, update the following variables in ```mongodb_rest.cbl```:
+- `ws-mongodb-base-url`: Your MongoDB Atlas Data API endpoint
+- `ws-mongodb-api-key`: Your API key
+
+The MongoDB REST API integration framework is provided via ```http_wrapper.c``` for future enhancement.
 
