@@ -1,0 +1,6 @@
+*.class
+*.jar
+
+test-file-*.txt
+merge-output.txt
+sorted-contract-id.txt
