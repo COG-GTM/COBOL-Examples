@@ -56,20 +56,20 @@ public class CustomerRecord {
 
     @Override
     public String toString() {
-        return String.format("%05d%-50s%-50s%05d%-25s",
+        return String.format("%05d%-50s%-50s%05d%s",
             customerId, customerLastName, customerFirstName, customerContractId, customerComment);
     }
 
     public static CustomerRecord fromString(String line) {
-        if (line.length() < 135) {
-            throw new IllegalArgumentException("Invalid record format");
+        if (line.length() < 110) {
+            throw new IllegalArgumentException("Invalid record format: line too short");
         }
         
         int customerId = Integer.parseInt(line.substring(0, 5).trim());
         String customerLastName = line.substring(5, 55);
         String customerFirstName = line.substring(55, 105);
         int customerContractId = Integer.parseInt(line.substring(105, 110).trim());
-        String customerComment = line.substring(110, 135);
+        String customerComment = line.substring(110);
         
         return new CustomerRecord(customerId, customerLastName, customerFirstName,
                                  customerContractId, customerComment);

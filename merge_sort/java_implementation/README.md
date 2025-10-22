@@ -80,3 +80,44 @@ After running the program, the following files are created:
 - `test-file-2.txt` - Second input file with test data
 - `merge-output.txt` - Merged records sorted by customer ID (ascending)
 - `sorted-contract-id.txt` - Final output sorted by contract ID (descending)
+
+## Testing
+
+### Unit Tests
+
+The implementation includes comprehensive JUnit tests:
+
+- **CustomerRecordTest.java** - Tests for the CustomerRecord class:
+  - Constructor and getter/setter methods
+  - toString() formatting
+  - fromString() parsing
+  - Round-trip serialization/deserialization
+  - Invalid input handling
+
+- **MergeSortExampleTest.java** - Integration tests for the main program:
+  - Test data file creation
+  - Merge operation (ascending customer ID sort)
+  - Sort operation (descending contract ID sort)
+  - Data consistency between merged and sorted files
+
+To run the unit tests:
+```bash
+./run_tests.sh
+```
+
+All 10 unit tests pass successfully.
+
+### COBOL vs Java Comparison Test
+
+To verify that the Java implementation produces identical output to the original COBOL program:
+
+```bash
+./compare_cobol_java.sh
+```
+
+This test:
+1. Compiles and runs the COBOL program
+2. Runs the Java program
+3. Compares the output files to ensure they are byte-for-byte identical
+
+**Note**: Requires GnuCOBOL (`cobc`) to be installed.
