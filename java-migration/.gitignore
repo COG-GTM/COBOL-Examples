@@ -1,0 +1,22 @@
+# Compiled class files
+bin/
+*.class
+
+# JUnit JAR
+junit-platform-console-standalone-*.jar
+
+# Test data files
+test-data/
+*.txt
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+.project
+.classpath
+.settings/
+
+# OS files
+.DS_Store
+Thumbs.db
