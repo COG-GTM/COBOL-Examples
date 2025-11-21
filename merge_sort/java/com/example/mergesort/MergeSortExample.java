@@ -38,10 +38,15 @@ public class MergeSortExample {
             List<CustomerRecord> file1Records = FileManager.readRecords(TEST_FILE_1);
             List<CustomerRecord> file2Records = FileManager.readRecords(TEST_FILE_2);
             
+            Comparator<CustomerRecord> customerIdComparator = Comparator.comparing(CustomerRecord::getCustomerId);
+            
+            List<CustomerRecord> sortedFile1 = FileSorter.sort(file1Records, customerIdComparator);
+            List<CustomerRecord> sortedFile2 = FileSorter.sort(file2Records, customerIdComparator);
+            
             List<CustomerRecord> mergedRecords = FileMerger.merge(
-                file1Records, 
-                file2Records, 
-                Comparator.comparing(CustomerRecord::getCustomerId)
+                sortedFile1, 
+                sortedFile2, 
+                customerIdComparator
             );
             
             FileManager.FileStatus status = FileManager.writeRecords(mergedRecords, MERGED_FILE);
