@@ -1,0 +1,6 @@
+*.class
+test-file-1.txt
+test-file-2.txt
+merge-output.txt
+sorted-contract-id.txt
+work-temp.txt
