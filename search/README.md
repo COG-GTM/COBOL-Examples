@@ -23,6 +23,23 @@ are slower than binary searchs.
 
 ```search.cbl``` demonstrates a couple of examples of using ```SEARCH``` and ```SEARCH ALL``` in different forms.
 
+## How to Compile
+
+```bash
+cobc -x search.cbl
+```
+
+## How to Run
+
+```bash
+./search
+```
+
+The program prompts for search IDs multiple times to demonstrate different search modes.
+
+## Prerequisites
+
+None beyond GnuCOBOL (`cobc`). This example requires user input.
 
 **Example of program output:**
 

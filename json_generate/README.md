@@ -15,6 +15,17 @@ After configured, you will need to also run ```make``` ```make install``` to reb
 If successful, ```cobcrun --info``` should display:
 ```JSON library             : json-c, version 0.15.99```
 
+## How to Compile
+
+```bash
+cobc -x json_generate.cbl
+```
+
+## How to Run
+
+```bash
+./json_generate
+```
 
 **Example output of program:**
 ```

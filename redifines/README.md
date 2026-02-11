@@ -19,6 +19,21 @@ display or interpret data different ways.
 
 ```redefines.cbl``` demonstrates a couple of examples of using ```REDEFINES```.
 
+## How to Compile
+
+```bash
+cobc -x redefines.cbl
+```
+
+## How to Run
+
+```bash
+./redefines
+```
+
+## Prerequisites
+
+None beyond GnuCOBOL (`cobc`). This example does not require user input.
 
 **Example of program output:**
 
