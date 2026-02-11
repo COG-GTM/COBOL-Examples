@@ -19,7 +19,25 @@ requires text locations specified for display statements or the use of the ```SC
     call 'CBL_GET_SRC_SIZE' using ws-num-lines ws-num-cols
 ```
 
+## How to Compile
 
+```bash
+cobc -x get_screen_size.cbl
+```
+
+## How to Run
+
+```bash
+./get_screen_size
+```
+
+The program enters screen mode and displays the current terminal dimensions. It waits for you to resize the terminal and press Enter between each method to see updated values.
+
+## Prerequisites
+
+- GnuCOBOL (`cobc`)
+- A terminal that supports ncurses
+- Interactive (requires user input)
 
 **Example of program output:**
 

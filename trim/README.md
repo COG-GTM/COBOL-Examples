@@ -35,6 +35,21 @@ Example:
 
 ```trim.cbl``` demonstrates a couple of examples of using the ```trim``` function.
 
+## How to Compile
+
+```bash
+cobc -x trim.cbl
+```
+
+## How to Run
+
+```bash
+./trim
+```
+
+## Prerequisites
+
+None beyond GnuCOBOL (`cobc`). This example does not require user input.
 
 **Example of program output:**
 

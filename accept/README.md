@@ -1,6 +1,6 @@
-# Accept syntax examples
+# Accept Syntax Examples
 
-The ```ACCEPT``` statement assigns input from the user/environment/screen/etc to a variable. In its simpilest form, it is 
+The ```ACCEPT``` statement assigns input from the user/environment/screen/etc to a variable. In its simplest form, it is 
 written as:
 
 ```accept ws-variable-name```
@@ -14,7 +14,23 @@ upper left hand corner of the terminal output. This can be done by either passin
 location in the output statements or using the ```screen section``` to define the screen's output. 
 Those functionalities are covered in their related sub directories in this repo.
 
+## How to Compile
 
+```bash
+cobc -x accept.cbl
+cobc -x accept-secure.cbl
+cobc -x accept_from.cbl
+```
+
+## How to Run
+
+```bash
+./accept
+./accept-secure
+./accept_from "this is one cmd arg" these are individual
+```
+
+All three programs require interactive user input. `accept_from` also accepts command-line arguments to demonstrate `ACCEPT FROM COMMAND-LINE` and `ACCEPT FROM ARGUMENT-VALUE`.
 
 ## Accept
 

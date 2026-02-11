@@ -1,11 +1,29 @@
-# Example calling a sub program
-
+# Example Calling a Sub Program
 
 This example shows how to call a sub program and pass variables by content and by reference. It also demonstrates 
 how the working-storage section variables of the sub program retain their values until the sub program is 
 cancelled using the cancel statement. Local-storage variables do not retain their values between sub program 
-calls. 
+calls.
 
+## How to Compile
+
+Both source files must be compiled together:
+
+```bash
+cobc -x main_app.cbl sub.cbl -o a.out
+```
+
+## How to Run
+
+```bash
+./a.out
+```
+
+The program prompts for two values, then demonstrates three sub-program calls: by content, by reference, and after a cancel.
+
+## Prerequisites
+
+None beyond GnuCOBOL (`cobc`). This example requires user input.
 
 **Example program output:**
 

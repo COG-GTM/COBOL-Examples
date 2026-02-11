@@ -14,6 +14,17 @@ After configured, you will need to also run ```make``` ```make install``` to reb
 If successful, ```cobcrun --info``` should display:
 ```XML library              : libxml2, version 2.9.3```
 
+## How to Compile
+
+```bash
+cobc -x xml_generate.cbl
+```
+
+## How to Run
+
+```bash
+./xml_generate
+```
 
 **Example output of program:**
 ```

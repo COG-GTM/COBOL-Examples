@@ -16,6 +16,21 @@
 
 ```unstring.cbl``` demonstrates a couple of examples of using ```UNSTRING``` in different forms.
 
+## How to Compile
+
+```bash
+cobc -x unstring.cbl
+```
+
+## How to Run
+
+```bash
+./unstring
+```
+
+## Prerequisites
+
+None beyond GnuCOBOL (`cobc`). This example does not require user input.
 
 **Example of program output:**
 
