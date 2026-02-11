@@ -44,7 +44,7 @@ You entered: TEST
 
 ## Accept Secure
 
-```accept-secure.cbl``` demonstrates using the ```SECURE``` keyword on an ```ACCEPT``` statement to hide 
+```accept_secure.cbl``` demonstrates using the ```SECURE``` keyword on an ```ACCEPT``` statement to hide 
 the text input from being displayed on the screen. In the default case, the input will be displayed 
 as asterisks. Note that the input will still be in plain text in memory so displaying the contents 
 of the variable that was entered securely will display the original text that was inputted. 

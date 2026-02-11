@@ -2,7 +2,7 @@
 
 
 Getting the number of lines and columns of the current display can be helpful when formatting 
-the output to the screen. ```get_screen_size.cbl``` shows two different examples on how 
+the output to the screen. ```screen_size.cbl``` shows two different examples on how 
 to do this. Note that the usage of both methods puts the program into "Screen Mode" which 
 requires text locations specified for display statements or the use of the ```SCREEN SECTION.```
 
