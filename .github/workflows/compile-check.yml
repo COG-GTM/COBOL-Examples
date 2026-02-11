@@ -1,0 +1,80 @@
+name: COBOL Compile Check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  compile-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install GnuCOBOL
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gnucobol
+
+      - name: Verify GnuCOBOL installation
+        run: cobc --version
+
+      - name: Syntax check all .cbl files
+        run: |
+          echo "=== Syntax checking all .cbl files ==="
+          # sql/ files contain EXEC SQL blocks that require the esqlOC
+          # precompiler before they can be parsed by cobc, so exclude them.
+          failed=0
+          for f in $(find . -name "*.cbl" -not -path "./sql/*" | sort); do
+            echo "Checking: $f"
+            if ! cobc -fsyntax-only "$f"; then
+              echo "FAILED: $f"
+              failed=1
+            fi
+          done
+          if [ "$failed" -eq 1 ]; then
+            echo "Some files failed syntax checking."
+            exit 1
+          fi
+          echo "All files passed syntax checking."
+
+      - name: Compile non-interactive examples
+        run: |
+          echo "=== Compiling non-interactive examples ==="
+
+          # Skipped examples:
+          # - sql/: Requires the esqlOC precompiler and libocsql library, which are not available in CI
+          # - accept/: Programs use ACCEPT statements requiring interactive terminal input
+          # - mouse/: Program uses mouse input handling requiring a terminal
+          # - screen_size/: Program uses ACCEPT statements for screen dimensions requiring a terminal
+
+          compile_and_verify() {
+            local src="$1"
+            local out="$2"
+            echo "Compiling: $src -> $out"
+            cobc -x "$src" -o "$out"
+            if [ -f "$out" ] && [ -x "$out" ]; then
+              echo "  OK: $out exists and is executable"
+            else
+              echo "  FAILED: $out was not produced"
+              return 1
+            fi
+          }
+
+          failed=0
+          compile_and_verify json_generate/json_generate.cbl /tmp/json_generate   || failed=1
+          compile_and_verify xml_generate/xml_generate.cbl /tmp/xml_generate       || failed=1
+          compile_and_verify numval_test/numval_test.cbl /tmp/numval_test           || failed=1
+          compile_and_verify comp_test/comp_test.cbl /tmp/comp_test                 || failed=1
+          compile_and_verify trim/trim.cbl /tmp/trim                               || failed=1
+          compile_and_verify is_numeric/is_numeric.cbl /tmp/is_numeric             || failed=1
+          compile_and_verify merge_sort/merge_sort_test.cbl /tmp/merge_sort_test   || failed=1
+
+          if [ "$failed" -eq 1 ]; then
+            echo "Some examples failed to compile."
+            exit 1
+          fi
+          echo "All non-interactive examples compiled successfully."
