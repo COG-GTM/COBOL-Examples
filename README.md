@@ -3,7 +3,7 @@ This is a collection of example and test COBOL programs I've written. I'm curren
 each folder with a README.md file and more comments so that the examples are easier to follow along with.
 
 
-All program were written using [GnuCOBOL](https://gnucobol.sourceforge.io/) in Linux.  
+All programs were written using [GnuCOBOL](https://gnucobol.sourceforge.io/) in Linux.      
 
 
 
