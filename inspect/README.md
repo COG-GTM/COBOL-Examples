@@ -67,6 +67,7 @@ EX 4 : TALLYING WITH MULTIPLE CONDITIONS
  
 SOURCE STRING: ABRACADABRA ALAKAZAM                 
 COUNT OF 'A': 09
+COUNT OF 'B': 02
  
 =================================================
 EX 5 : REPLACING ALL OCCURRENCES

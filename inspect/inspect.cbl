@@ -17,7 +17,8 @@
        01  ws-tally-count             pic 99 value 0.
 
        01  ws-before-str              pic x(40).
-       01  ws-after-str               pic x(40).
+
+       01  ws-tally-count-2           pic 99 value 0.
 
        procedure division.
        main-procedure.
@@ -86,7 +87,7 @@
       *> EXAMPLE 4:
       *> INSPECT TALLYING - Multiple tallying conditions combined.
       *> Counts occurrences of multiple different patterns in a
-      *> single INSPECT statement.
+      *> single INSPECT statement using two tally counters.
            display spaces
            display "================================================="
            display "EX 4 : TALLYING WITH MULTIPLE CONDITIONS"
@@ -94,14 +95,17 @@
 
            move "ABRACADABRA ALAKAZAM" to ws-source-str
            move 0 to ws-tally-count
+           move 0 to ws-tally-count-2
 
            display "SOURCE STRING: " ws-source-str
 
            inspect ws-source-str
-               tallying ws-tally-count
-               for all "A"
+               tallying
+                   ws-tally-count for all "A"
+                   ws-tally-count-2 for all "B"
 
            display "COUNT OF 'A': " ws-tally-count
+           display "COUNT OF 'B': " ws-tally-count-2
 
 
       *> EXAMPLE 5:
