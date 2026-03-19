@@ -1,12 +1,14 @@
 package com.cobolmigration.model;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import org.hibernate.type.YesNoConverter;
 
 /**
  * JPA entity mapped to the ACCOUNTS table.
@@ -48,8 +50,9 @@ public class Account {
 
     /**
      * Maps to the IS_ENABLED column which stores 'Y' or 'N' in the COBOL version.
-     * Converted to a boolean for idiomatic Java usage.
+     * Uses Hibernate's YesNoConverter to translate between boolean and VARCHAR(1).
      */
+    @Convert(converter = YesNoConverter.class)
     @Column(name = "IS_ENABLED", nullable = false)
     private boolean enabled;
 
