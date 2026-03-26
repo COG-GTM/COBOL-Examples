@@ -44,6 +44,11 @@
     <script>
         const API = '/api';
 
+        function escapeHtml(str) {
+            if (str == null) return '';
+            return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+        }
+
         async function loadAllAccounts() {
             try {
                 const res = await fetch(`${API}/accounts`);
@@ -70,7 +75,7 @@
             try {
                 const res = await fetch(`${API}/accounts/search?q=${encodeURIComponent(q)}`);
                 const accounts = await res.json();
-                displayAccounts(accounts, `SEARCH RESULTS FOR "${q}":`);
+                displayAccounts(accounts, `SEARCH RESULTS FOR "${escapeHtml(q)}":`);
             } catch (e) { showError(e); }
         }
 
@@ -78,8 +83,8 @@
             let html = `<h2>${title}</h2><table>`;
             html += '<tr><th>ID</th><th>First</th><th>Last</th><th>Phone</th><th>Address</th><th>Enabled</th></tr>';
             accounts.forEach(a => {
-                html += `<tr><td>${a.id}</td><td>${a.firstName}</td><td>${a.lastName}</td>` +
-                        `<td>${a.phone}</td><td>${a.address}</td><td>${a.isEnabled}</td></tr>`;
+                html += `<tr><td>${escapeHtml(a.id)}</td><td>${escapeHtml(a.firstName)}</td><td>${escapeHtml(a.lastName)}</td>` +
+                        `<td>${escapeHtml(a.phone)}</td><td>${escapeHtml(a.address)}</td><td>${escapeHtml(a.isEnabled)}</td></tr>`;
             });
             html += '</table>';
             document.getElementById('results').innerHTML = html;
@@ -94,7 +99,7 @@
                 let html = '<h2>SYSTEM INFO:</h2><table>';
                 html += '<tr><th>Property</th><th>Value</th></tr>';
                 Object.entries({...dateInfo, ...timeInfo, ...userInfo}).forEach(([k, v]) => {
-                    html += `<tr><td>${k}</td><td>${v}</td></tr>`;
+                    html += `<tr><td>${escapeHtml(k)}</td><td>${escapeHtml(v)}</td></tr>`;
                 });
                 html += '</table>';
                 document.getElementById('results').innerHTML = html;
@@ -102,7 +107,7 @@
         }
 
         function showError(e) {
-            document.getElementById('results').innerHTML = `<p class="error">Error: ${e.message}</p>`;
+            document.getElementById('results').innerHTML = `<p class="error">Error: ${escapeHtml(e.message)}</p>`;
         }
     </script>
 </body>

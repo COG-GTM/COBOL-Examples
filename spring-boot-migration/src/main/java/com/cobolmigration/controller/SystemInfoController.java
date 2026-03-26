@@ -59,7 +59,7 @@ public class SystemInfoController {
         LocalTime now = LocalTime.now();
         LocalDateTime dateTime = LocalDateTime.now();
         Map<String, String> timeInfo = new LinkedHashMap<>();
-        timeInfo.put("time_hhmmssnn", now.format(DateTimeFormatter.ofPattern("HHmmssnn")));
+        timeInfo.put("time_hhmmssnn", now.format(DateTimeFormatter.ofPattern("HHmmssSS")));
         timeInfo.put("iso_time", now.toString());
         timeInfo.put("iso_datetime", dateTime.toString());
         return ResponseEntity.ok(timeInfo);

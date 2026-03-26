@@ -27,6 +27,7 @@ public class RecordDto {
     private String blank;
 
     @JsonProperty("enabled")
+    @JsonInclude(JsonInclude.Include.ALWAYS)
     private boolean flag;
 
     public RecordDto() {
