@@ -4,7 +4,7 @@
 DROP TABLE IF EXISTS accounts;
 
 CREATE TABLE accounts (
-    id serial not null,
+    id bigserial not null,
     first_name varchar not null,
     last_name varchar not null,
     phone varchar not null,
