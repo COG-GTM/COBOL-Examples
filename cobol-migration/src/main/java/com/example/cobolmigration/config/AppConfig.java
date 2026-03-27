@@ -1,8 +1,9 @@
 package com.example.cobolmigration.config;
 
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.MediaType;
+import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
  * Application configuration.
@@ -47,10 +48,16 @@ import org.springframework.context.annotation.Configuration;
  *   - comp_test/comp_test.cbl: COMP to display — Java handles numeric types natively.
  */
 @Configuration
-public class AppConfig {
+public class AppConfig implements WebMvcConfigurer {
 
-    @Bean
-    public XmlMapper xmlMapper() {
-        return new XmlMapper();
+    /**
+     * Configure content negotiation to default to JSON.
+     * Without this, jackson-dataformat-xml on the classpath causes Spring
+     * to prefer XML serialization for all endpoints.
+     */
+    @Override
+    public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
+        configurer.defaultContentType(MediaType.APPLICATION_JSON);
     }
+
 }
