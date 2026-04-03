@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COBOL Migration - Account Management</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; color: #333; }
+        header { background: #2c3e50; color: white; padding: 20px; text-align: center; }
+        header h1 { font-size: 1.8em; }
+        header p { color: #bdc3c7; margin-top: 5px; }
+        .container { max-width: 900px; margin: 20px auto; padding: 0 20px; }
+        .card { background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; padding: 20px; }
+        .card h2 { color: #2c3e50; margin-bottom: 15px; border-bottom: 2px solid #3498db; padding-bottom: 8px; }
+        .btn-group { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; transition: background 0.3s; }
+        .btn-primary { background: #3498db; color: white; }
+        .btn-primary:hover { background: #2980b9; }
+        .btn-warning { background: #e67e22; color: white; }
+        .btn-warning:hover { background: #d35400; }
+        .btn-info { background: #1abc9c; color: white; }
+        .btn-info:hover { background: #16a085; }
+        .search-box { display: flex; gap: 10px; margin-bottom: 15px; }
+        .search-box input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #34495e; color: white; padding: 12px 10px; text-align: left; }
+        td { padding: 10px; border-bottom: 1px solid #eee; }
+        tr:hover { background: #f0f7ff; }
+        .status-enabled { color: #27ae60; font-weight: bold; }
+        .status-disabled { color: #e74c3c; font-weight: bold; }
+        .loading { text-align: center; padding: 20px; color: #7f8c8d; }
+        .error { background: #fdecea; color: #c0392b; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
+        .info { background: #eaf2f8; color: #2980b9; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
+        footer { text-align: center; padding: 20px; color: #7f8c8d; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Account Management System</h1>
+        <p>COBOL-to-Java/Spring Boot Migration</p>
+    </header>
+
+    <div class="container">
+        <div class="card">
+            <h2>Account Operations</h2>
+            <p class="info">
+                This web interface replaces the COBOL terminal menu (ACCEPT/DISPLAY) from
+                <code>sql/sql_example.cbl</code>. Select an operation below.
+            </p>
+
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="loadAllAccounts()">
+                    Show All Accounts
+                </button>
+                <button class="btn btn-warning" onclick="loadDisabledAccounts()">
+                    Show Disabled Accounts
+                </button>
+            </div>
+
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search accounts by name, phone, or address..."
+                       onkeypress="if(event.key==='Enter') searchAccounts()">
+                <button class="btn btn-info" onclick="searchAccounts()">Search</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Results</h2>
+            <div id="results">
+                <p class="loading">Select an operation above to view accounts.</p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>Migrated from COBOL to Java/Spring Boot &mdash; COBOL-Examples Migration Project</p>
+    </footer>
+
+    <script>
+        const API_BASE = '/api/accounts';
+
+        async function loadAllAccounts() {
+            await fetchAndDisplay(API_BASE, 'All Accounts');
+        }
+
+        async function loadDisabledAccounts() {
+            await fetchAndDisplay(`${API_BASE}/disabled`, 'Disabled Accounts');
+        }
+
+        async function searchAccounts() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) {
+                document.getElementById('results').innerHTML =
+                    '<p class="error">Please enter a search term.</p>';
+                return;
+            }
+            await fetchAndDisplay(
+                `${API_BASE}/search?q=${encodeURIComponent(query)}`,
+                `Search Results for "${query}"`
+            );
+        }
+
+        async function fetchAndDisplay(url, title) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<p class="loading">Loading...</p>';
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                const accounts = await response.json();
+                if (accounts.length === 0) {
+                    resultsDiv.innerHTML = `<p class="info">No accounts found for: ${title}</p>`;
+                    return;
+                }
+
+                let html = `<p style="margin-bottom:10px;color:#7f8c8d;">${title} (${accounts.length} records)</p>`;
+                html += '<table><thead><tr>';
+                html += '<th>ID</th><th>First Name</th><th>Last Name</th>';
+                html += '<th>Phone</th><th>Address</th><th>Status</th>';
+                html += '</tr></thead><tbody>';
+
+                accounts.forEach(a => {
+                    const statusClass = a.isEnabled === 'Y' ? 'status-enabled' : 'status-disabled';
+                    const statusText = a.isEnabled === 'Y' ? 'Enabled' : 'Disabled';
+                    html += `<tr>
+                        <td>${a.id}</td>
+                        <td>${a.firstName}</td>
+                        <td>${a.lastName}</td>
+                        <td>${a.phone}</td>
+                        <td>${a.address}</td>
+                        <td class="${statusClass}">${statusText}</td>
+                    </tr>`;
+                });
+
+                html += '</tbody></table>';
+                resultsDiv.innerHTML = html;
+            } catch (error) {
+                resultsDiv.innerHTML = `<p class="error">Error: ${error.message}. Make sure the Spring Boot server is running.</p>`;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+                                           Customer Order Report                                    PAGE   1
+
+   ID       Student Name           Maj  NC
+   ------   --------------------   ---  --
+
+   001234   John Smith              CS  05
+   002345   Jane Doe                PHY 03
+   003456   Bob Johnson             MAT 07
