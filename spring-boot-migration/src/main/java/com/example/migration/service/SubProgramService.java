@@ -39,7 +39,7 @@ public class SubProgramService {
      * @param item2 second parameter (passed by value)
      * @return result containing the processed values and working-storage state
      */
-    public SubProgramResult processByContent(String item1, String item2) {
+    public synchronized SubProgramResult processByContent(String item1, String item2) {
         // Local-storage equivalents: fresh on each call
         String lsTestItem1 = "";
         String lsTestItem2 = "";
@@ -76,7 +76,7 @@ public class SubProgramService {
      * @param items mutable array of [item1, item2] that will be modified
      * @return result containing the processed values and working-storage state
      */
-    public SubProgramResult processByReference(String[] items) {
+    public synchronized SubProgramResult processByReference(String[] items) {
         String lsTestItem1 = "";
         String lsTestItem2 = "";
 
@@ -109,7 +109,7 @@ public class SubProgramService {
      * Resets working-storage to initial values.
      * Replaces: CANCEL "sub-app" (main_app.cbl line 55)
      */
-    public void reset() {
+    public synchronized void reset() {
         wsTestItem1 = "";
         wsTestItem2 = "";
     }

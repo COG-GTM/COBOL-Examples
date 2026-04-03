@@ -39,7 +39,7 @@ public class CustomerRecord implements Comparable<CustomerRecord> {
      * Formats the record as a fixed-width string similar to COBOL DISPLAY output.
      */
     public String toFixedWidthString() {
-        return String.format("%-5d%-50s%-50s%-5d%-25s",
+        return String.format("%05d%-50s%-50s%05d%-25s",
                 customerId,
                 lastName != null ? lastName : "",
                 firstName != null ? firstName : "",
