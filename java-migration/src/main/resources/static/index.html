@@ -80,6 +80,13 @@
     <script>
         const API_BASE = '/api/accounts';
 
+        function escapeHtml(str) {
+            if (str == null) return '';
+            const div = document.createElement('div');
+            div.textContent = String(str);
+            return div.innerHTML;
+        }
+
         async function loadAllAccounts() {
             await fetchAndDisplay(API_BASE, 'All Accounts');
         }
@@ -97,7 +104,7 @@
             }
             await fetchAndDisplay(
                 `${API_BASE}/search?q=${encodeURIComponent(query)}`,
-                `Search Results for "${query}"`
+                `Search Results for "${escapeHtml(query)}"`
             );
         }
 
@@ -111,11 +118,11 @@
 
                 const accounts = await response.json();
                 if (accounts.length === 0) {
-                    resultsDiv.innerHTML = `<p class="info">No accounts found for: ${title}</p>`;
+                    resultsDiv.innerHTML = `<p class="info">No accounts found for: ${escapeHtml(title)}</p>`;
                     return;
                 }
 
-                let html = `<p style="margin-bottom:10px;color:#7f8c8d;">${title} (${accounts.length} records)</p>`;
+                let html = `<p style="margin-bottom:10px;color:#7f8c8d;">${escapeHtml(title)} (${accounts.length} records)</p>`;
                 html += '<table><thead><tr>';
                 html += '<th>ID</th><th>First Name</th><th>Last Name</th>';
                 html += '<th>Phone</th><th>Address</th><th>Status</th>';
@@ -125,11 +132,11 @@
                     const statusClass = a.isEnabled === 'Y' ? 'status-enabled' : 'status-disabled';
                     const statusText = a.isEnabled === 'Y' ? 'Enabled' : 'Disabled';
                     html += `<tr>
-                        <td>${a.id}</td>
-                        <td>${a.firstName}</td>
-                        <td>${a.lastName}</td>
-                        <td>${a.phone}</td>
-                        <td>${a.address}</td>
+                        <td>${escapeHtml(a.id)}</td>
+                        <td>${escapeHtml(a.firstName)}</td>
+                        <td>${escapeHtml(a.lastName)}</td>
+                        <td>${escapeHtml(a.phone)}</td>
+                        <td>${escapeHtml(a.address)}</td>
                         <td class="${statusClass}">${statusText}</td>
                     </tr>`;
                 });
@@ -137,7 +144,7 @@
                 html += '</tbody></table>';
                 resultsDiv.innerHTML = html;
             } catch (error) {
-                resultsDiv.innerHTML = `<p class="error">Error: ${error.message}. Make sure the Spring Boot server is running.</p>`;
+                resultsDiv.innerHTML = `<p class="error">Error: ${escapeHtml(error.message)}. Make sure the Spring Boot server is running.</p>`;
             }
         }
     </script>
