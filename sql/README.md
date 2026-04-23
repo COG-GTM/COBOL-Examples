@@ -59,3 +59,11 @@ https://www.microfocus.com/documentation/net-express/nx30books/dbdtyp.htm
 Please also see the comments and code in the ```sql_example.cbl``` source file as this is demonstrated in the 
 account querying functionality of the test program.
 
+---
+
+## Java Implementation
+
+A Java equivalent of this COBOL SQL example program is also available. It provides the same functionality using JDBC to connect to the PostgreSQL database.
+
+See the [Java SQL Example README](java/README.md) for details on prerequisites, compilation, and usage.
+
