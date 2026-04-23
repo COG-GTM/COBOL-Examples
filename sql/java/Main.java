@@ -1,11 +1,17 @@
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Scanner;
 
 public class Main {
 
+    private static final DateTimeFormatter TIMESTAMP_FMT =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
     public static void main(String[] args) {
         System.out.println("COBOL SQL DB Example Program - Java Edition");
         System.out.println("--------------------------------------------");
+        System.out.println("Session started: " + LocalDateTime.now().format(TIMESTAMP_FMT));
 
         AccountHandler handler = new AccountHandler();
         handler.connect();

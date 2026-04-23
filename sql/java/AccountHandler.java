@@ -1,4 +1,5 @@
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -112,6 +113,8 @@ public class AccountHandler {
     }
 
     private Account mapRow(ResultSet rs) throws SQLException {
+        Timestamp createTs = rs.getTimestamp("CREATE_DT");
+        Timestamp modTs = rs.getTimestamp("MOD_DT");
         return new Account(
                 rs.getInt("ID"),
                 rs.getString("FIRST_NAME"),
@@ -119,7 +122,7 @@ public class AccountHandler {
                 rs.getString("PHONE"),
                 rs.getString("ADDRESS"),
                 rs.getString("IS_ENABLED"),
-                rs.getString("CREATE_DT"),
-                rs.getString("MOD_DT"));
+                createTs != null ? createTs.toLocalDateTime() : null,
+                modTs != null ? modTs.toLocalDateTime() : null);
     }
 }

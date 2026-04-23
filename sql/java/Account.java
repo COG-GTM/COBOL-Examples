@@ -1,4 +1,4 @@
-import java.util.Objects;
+import java.time.LocalDateTime;
 
 public class Account {
 
@@ -8,11 +8,11 @@ public class Account {
     private final String phone;
     private final String address;
     private final String isEnabled;
-    private final String createDt;
-    private final String modDt;
+    private final LocalDateTime createDt;
+    private final LocalDateTime modDt;
 
     public Account(int id, String firstName, String lastName, String phone,
-                   String address, String isEnabled, String createDt, String modDt) {
+                   String address, String isEnabled, LocalDateTime createDt, LocalDateTime modDt) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -29,8 +29,8 @@ public class Account {
     public String getPhone() { return phone; }
     public String getAddress() { return address; }
     public String getIsEnabled() { return isEnabled; }
-    public String getCreateDt() { return createDt; }
-    public String getModDt() { return modDt; }
+    public LocalDateTime getCreateDt() { return createDt; }
+    public LocalDateTime getModDt() { return modDt; }
 
     @Override
     public String toString() {
