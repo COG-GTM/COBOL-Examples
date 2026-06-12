@@ -1,0 +1,16 @@
+# Test profile: use an in-memory H2 database in PostgreSQL compatibility mode so
+# the suite runs without an external PostgreSQL instance. Flyway is disabled and
+# Hibernate builds the schema from the entity mappings.
+spring:
+  datasource:
+    url: jdbc:h2:mem:cobol_db_example;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1
+    username: sa
+    password: ""
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    database-platform: org.hibernate.dialect.H2Dialect
+    show-sql: true
+  flyway:
+    enabled: false
