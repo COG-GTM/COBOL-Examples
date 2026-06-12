@@ -3,7 +3,7 @@
 -- already-selected database (configured via spring.datasource.url).
 
 CREATE TABLE IF NOT EXISTS accounts (
-    id          serial      NOT NULL,
+    id          bigserial   NOT NULL,
     first_name  varchar     NOT NULL,
     last_name   varchar     NOT NULL,
     phone       varchar     NOT NULL,
