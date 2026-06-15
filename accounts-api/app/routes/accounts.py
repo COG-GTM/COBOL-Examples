@@ -17,7 +17,8 @@ router = APIRouter(prefix="/accounts", tags=["accounts"])
 
 
 def _now() -> datetime:
-    return datetime.now(timezone.utc)
+    # Naive UTC: the accounts table uses TIMESTAMP WITHOUT TIME ZONE.
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 @router.get("", response_model=AccountListResponse)
