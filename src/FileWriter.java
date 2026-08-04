@@ -14,7 +14,7 @@ public class FileWriter {
     public void writeRecords(List<CustomerRecord> records) throws IOException {
     try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(filePath))) {
         for (CustomerRecord record : records) {
-            String line = String.format("%-5s%-50s%-50s%-5s%-25s",
+            String line = String.format("%-5.5s%-50.50s%-50.50s%-5.5s%-25.25s",
                     record.getCustomerID(),
                     record.getLastName(),
                     record.getFirstName(),
