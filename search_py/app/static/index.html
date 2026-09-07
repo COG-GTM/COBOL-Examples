@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Item Lookup — search-example (migrated)</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <header class="masthead">
+      <div class="masthead-inner">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span class="brand-names">
+            <span class="brand-en">Bank Leumi</span>
+            <span class="brand-he" lang="he" dir="rtl">בנק לאומי</span>
+          </span>
+        </div>
+        <div class="masthead-meta">
+          <span class="masthead-title">Item Lookup</span>
+          <span class="masthead-sub" lang="he" dir="rtl">איתור פריט</span>
+        </div>
+      </div>
+      <div class="masthead-rule" aria-hidden="true"></div>
+    </header>
+
+    <main>
+      <p class="lede">
+        Migrated from the GnuCOBOL program <code>search-example</code>
+        (<code>search/search.cbl</code>). Each tab below replaces one
+        <code>ACCEPT</code> prompt sequence of the original console session; all
+        messages are the program's own wording.
+      </p>
+
+      <nav class="tabs" role="tablist" aria-label="Search mode">
+        <button class="tab is-active" role="tab" data-mode="keyed" aria-selected="true">
+          1 &middot; Binary search (id-1)
+        </button>
+        <button class="tab" role="tab" data-mode="keyed-all" aria-selected="false">
+          2 &middot; Binary search (all keys)
+        </button>
+        <button class="tab" role="tab" data-mode="sequential" aria-selected="false">
+          3 &middot; Sequential search
+        </button>
+      </nav>
+
+      <section class="panel" id="panel-keyed" role="tabpanel">
+        <h2>Searching keyed table using binary search.</h2>
+        <form class="lookup" data-mode="keyed" autocomplete="off">
+          <label>
+            <span>Enter id-1 to search for:</span>
+            <input type="text" name="id1" maxlength="64" placeholder="0001" />
+          </label>
+          <button type="submit" class="cta">Search</button>
+        </form>
+      </section>
+
+      <section class="panel is-hidden" id="panel-keyed-all" role="tabpanel">
+        <h2>Searching again with all required ids matching.</h2>
+        <form class="lookup" data-mode="keyed-all" autocomplete="off">
+          <label>
+            <span>Enter id-1 to search for:</span>
+            <input type="text" name="id1" maxlength="64" placeholder="0002" />
+          </label>
+          <label>
+            <span>Enter id-2 to search for:</span>
+            <input type="text" name="id2" maxlength="64" placeholder="0102" />
+          </label>
+          <label>
+            <span>Enter id-3 to search for:</span>
+            <input type="text" name="id3" maxlength="64" placeholder="0499" />
+          </label>
+          <button type="submit" class="cta">Search</button>
+        </form>
+      </section>
+
+      <section class="panel is-hidden" id="panel-sequential" role="tabpanel">
+        <h2>Searching not keyed table using sequential search.</h2>
+        <form class="lookup" data-mode="sequential" autocomplete="off">
+          <label>
+            <span>Enter id:</span>
+            <input type="text" name="id" maxlength="64" placeholder="0001" />
+          </label>
+          <button type="submit" class="cta">Search</button>
+        </form>
+      </section>
+
+      <section class="result" id="result" aria-live="polite">
+        <div class="result-idle">Run a lookup to see the record.</div>
+      </section>
+
+      <section class="tables">
+        <h2>Working-storage tables</h2>
+        <div class="table-grid">
+          <div>
+            <h3>ws-item-table <span class="hint">ascending id-1, id-2 &middot; descending id-3</span></h3>
+            <pre class="mono" id="items-pane">loading…</pre>
+          </div>
+          <div>
+            <h3>ws-no-key-item-table <span class="hint">no key, not sorted</span></h3>
+            <pre class="mono" id="no-key-pane">loading…</pre>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span>Read-only inquiry service. The COBOL source remains the system of record.</span>
+      <span lang="he" dir="rtl">שירות קריאה בלבד</span>
+    </footer>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>
