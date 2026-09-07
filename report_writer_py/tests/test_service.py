@@ -1,0 +1,95 @@
+from __future__ import annotations
+
+from fastapi.testclient import TestClient
+
+from app.service import (
+    BUNDLED_SAMPLE_INPUT,
+    LEGACY_INPUT,
+    MAX_INPUT_RECORDS,
+    ReportResponse,
+    RunStore,
+    _record_count,
+    app,
+)
+from parity.fixtures import make_record
+
+client = TestClient(app)
+
+
+def test_create_and_fetch_report() -> None:
+    payload = {"input_text": make_record("000009", "Dana", "ART", "05") + "\n"}
+    created = client.post("/api/reports", json=payload)
+    assert created.status_code == 200
+    body = created.json()
+    assert body["record_count"] == 1
+    assert body["detail_count"] == 2  # ruling D-001
+    assert body["page_count"] == 1
+    assert body["console"][-1] == "Done."
+    assert body["records"][0]["student_name"] == "Dana"
+
+    fetched = client.get(f"/api/reports/{body['id']}")
+    assert fetched.status_code == 200
+    assert fetched.json()["report_text"] == body["report_text"]
+
+
+def test_page_endpoint_and_not_found_paths() -> None:
+    rows = "".join(make_record(f"{i:06d}", f"N{i}", "PHY", "01") + "\n" for i in range(40))
+    body = client.post("/api/reports", json={"input_text": rows}).json()
+    assert body["page_count"] == 2
+
+    page = client.get(f"/api/reports/{body['id']}/pages/2")
+    assert page.status_code == 200
+    assert page.json()["number"] == 2
+
+    assert client.get(f"/api/reports/{body['id']}/pages/9").status_code == 404
+    assert client.get("/api/reports/does-not-exist").status_code == 404
+
+
+def test_empty_input_is_not_an_error() -> None:
+    response = client.post("/api/reports", json={"input_text": ""})
+    assert response.status_code == 200
+    assert response.json()["detail_count"] == 1
+
+
+def test_oversized_input_is_rejected() -> None:
+    response = client.post("/api/reports", json={"input_text": "x" * 1_000_001})
+    assert response.status_code == 413
+
+
+def test_record_count_does_not_count_the_terminating_newline() -> None:
+    assert _record_count("") == 0
+    assert _record_count("a\n") == 1
+    assert _record_count("a") == 1
+    assert _record_count("a\nb\n") == 2
+    assert _record_count("a\nb") == 2
+
+
+def test_too_many_records_is_rejected() -> None:
+    response = client.post("/api/reports", json={"input_text": "\n" * (MAX_INPUT_RECORDS + 1)})
+    assert response.status_code == 413
+
+
+def test_run_store_evicts_oldest_runs() -> None:
+    store = RunStore(max_entries=2)
+    ids = []
+    for index in range(3):
+        response = client.post(
+            "/api/reports", json={"input_text": make_record(f"{index:06d}", "N", "ART", "01") + "\n"}
+        ).json()
+        model = ReportResponse.model_validate(response)
+        store.put(model)
+        ids.append(model.id)
+
+    assert store.get(ids[0]) is None
+    assert store.get(ids[1]) is not None
+    assert store.get(ids[2]) is not None
+
+
+def test_bundled_sample_matches_the_legacy_input_file() -> None:
+    # The wheel ships this copy; drift would make /api/sample-input lie about the legacy data.
+    assert BUNDLED_SAMPLE_INPUT.read_bytes() == LEGACY_INPUT.read_bytes()
+
+
+def test_sample_input_and_index() -> None:
+    assert "input_text" in client.get("/api/sample-input").json()
+    assert client.get("/").status_code == 200

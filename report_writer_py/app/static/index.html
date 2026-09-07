@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bank Leumi — Customer Order Report</title>
+<link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+<header class="leumi-header">
+  <div class="header-inner">
+    <div class="leumi-mark">L</div>
+    <div>
+      <div class="brand-name">Bank Leumi</div>
+      <div class="brand-he">בנק לאומי</div>
+    </div>
+    <div class="brand-sub">
+      Batch Reporting Services<br />
+      Migrated from COBOL <code>report-test</code>
+    </div>
+  </div>
+</header>
+<nav class="leumi-subnav">
+  <div class="header-inner">
+    <span class="active">Customer Order Report</span>
+    <span>Batch Schedules</span>
+    <span>Archive</span>
+  </div>
+</nav>
+
+<main>
+  <section>
+    <div class="card">
+      <h2>Input File</h2>
+      <div class="body">
+        <label for="input-text">Line sequential records — id 9(6), name X(20), major XXX, courses 99</label>
+        <textarea id="input-text" spellcheck="false" placeholder="003345Test Name2          PHY12"></textarea>
+        <div class="actions">
+          <button class="primary" id="run-btn" type="button">Generate report</button>
+          <button class="secondary" id="sample-btn" type="button">Load sample input</button>
+          <button class="secondary" id="clear-btn" type="button">Clear</button>
+        </div>
+        <div class="message" id="message"></div>
+        <p class="hint">
+          Records are padded to 31 bytes exactly as <code>LINE SEQUENTIAL</code> does. Output is
+          byte-for-byte identical to the GnuCOBOL program, including its end-of-file behaviour.
+        </p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Run Summary</h2>
+      <div class="body">
+        <div class="stats">
+          <div><strong id="stat-records">–</strong>Records read</div>
+          <div><strong id="stat-details">–</strong>Detail lines</div>
+          <div><strong id="stat-pages">–</strong>Report pages</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Program Console</h2>
+      <ul class="console" id="console"><li>No run yet.</li></ul>
+    </div>
+  </section>
+
+  <section>
+    <div class="card">
+      <h2>report.txt</h2>
+      <div class="pager">
+        <button class="secondary" id="prev-btn" type="button" disabled>&#8592; Prev page</button>
+        <button class="secondary" id="next-btn" type="button" disabled>Next page &#8594;</button>
+        <span class="spacer"></span>
+        <span id="page-label">Page – of –</span>
+      </div>
+      <pre class="report" id="report">Run the program to render the report.</pre>
+    </div>
+
+    <div class="card">
+      <h2>Parsed Records</h2>
+      <table>
+        <thead>
+          <tr><th>#</th><th>Student ID</th><th>Name</th><th>Major</th><th>Courses</th></tr>
+        </thead>
+        <tbody id="records"><tr><td colspan="5">No records.</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<footer class="leumi-footer">
+  Bank Leumi le-Israel B.M. · Report Writer modernization · The COBOL program remains the system of record.
+</footer>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
