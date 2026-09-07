@@ -73,6 +73,7 @@
       *> Local variables to the program only. These are not seen by 
       *> the precompiler operation.
        01  ws-num-accounts                  pic 999 comp.
+       78  ws-max-accounts                  value 100.
 
        01  ws-account-record                occurs 0 to 100 times
                                             depending on ws-num-accounts                                            
@@ -114,13 +115,15 @@
            perform check-sql-state
            set ws-is-connected to true 
 
-      *> Set up cursors for querying records
+      *> Set up cursors for querying records. Every cursor is scoped
+      *> with a WHERE clause so no query can dump the whole table.
            EXEC SQL 
-               DECLARE ACCOUNT-ALL-CUR CURSOR FOR 
+               DECLARE ACCOUNT-ENABLED-CUR CURSOR FOR 
                SELECT 
                    ID, FIRST_NAME, LAST_NAME, PHONE, 
                    ADDRESS, IS_ENABLED, CREATE_DT, MOD_DT 
                FROM ACCOUNTS 
+               WHERE IS_ENABLED = 'Y'
                ORDER BY ID;
            END-EXEC 
 
@@ -157,7 +160,7 @@
       *> Main menu operations
            perform forever
                display space 
-               display "1) Display all accounts"
+               display "1) Display enabled accounts"
                display "2) Display disabled accounts"
                display "3) Query accounts"
                display "4) Exit"
@@ -167,7 +170,7 @@
                evaluate ws-menu-choice
                
                    when '1' 
-                       perform display-all-accounts
+                       perform display-enabled-accounts
                        
                    when '2' 
                        perform display-disabled-accounts 
@@ -195,24 +198,26 @@
  
 
 
-      *> Uses the ACCOUNT-ALL_CUR cursor to query the ACCOUNT table 
-      *> for all records. If a record is found, it is moved into the 
-      *> ws-account-record table array for display output.
-       display-all-accounts.
+      *> Uses the ACCOUNT-ENABLED-CUR cursor to query the ACCOUNT table 
+      *> for records where IS_ENABLED is set to 'Y'. If a record is 
+      *> found, it is moved into the ws-account-record table array for 
+      *> display output.
+       display-enabled-accounts.
 
       *> Open cursor
            EXEC SQL 
-               OPEN ACCOUNT-ALL-CUR 
+               OPEN ACCOUNT-ENABLED-CUR 
            END-EXEC 
 
            perform check-sql-state
 
       *> Use cursor to query the database for each record until no more 
-      *> are found.
+      *> are found or the output table is full.
            move 0 to ws-num-accounts
            perform with test after until SQLCODE = 100
+           or ws-num-accounts >= ws-max-accounts
                EXEC SQL 
-                   FETCH ACCOUNT-ALL-CUR 
+                   FETCH ACCOUNT-ENABLED-CUR 
                    INTO 
                        :ws-sql-account-id,
                        :ws-sql-account-first-name,
@@ -236,7 +241,7 @@
       *> Close cursor so that it can be reused next time paragraph is 
       *> called.
            EXEC SQL 
-               CLOSE ACCOUNT-ALL-CUR 
+               CLOSE ACCOUNT-ENABLED-CUR 
            END-EXEC 
            perform check-sql-state
 
@@ -253,7 +258,7 @@
       *> found, it is moved into the ws-account-record table array for 
       *> display output.
       *>
-      *> This paragraph is very similar to the display-all-accounts 
+      *> This paragraph is very similar to the display-enabled-accounts 
       *> paragraph, please see that paragraph for line by line comments
        display-disabled-accounts.
 
@@ -265,6 +270,7 @@
 
            move 0 to ws-num-accounts
            perform with test after until SQLCODE = 100
+           or ws-num-accounts >= ws-max-accounts
                EXEC SQL 
                    FETCH ACCOUNT-DISABLED-CUR 
                    INTO 
@@ -355,6 +361,7 @@
 
                move 0 to ws-num-accounts
                perform with test after until SQLCODE = 100
+               or ws-num-accounts >= ws-max-accounts
                    EXEC SQL 
                        FETCH ACCOUNT-QUERY-CUR 
                        INTO 
