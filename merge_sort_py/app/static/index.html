@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>merge-sort-example — Bank Leumi Batch Services</title>
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <header class="masthead">
+      <div class="masthead-inner">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span class="brand-text">
+            <span class="brand-en">Bank Leumi</span>
+            <span class="brand-he" lang="he" dir="rtl">בנק לאומי</span>
+          </span>
+        </div>
+        <div class="masthead-title">
+          <h1>Customer Contract Merge &amp; Sort</h1>
+          <p lang="he" dir="rtl">מיזוג ומיון חוזי לקוחות</p>
+        </div>
+        <div class="masthead-meta">
+          <span class="pill">program-id: merge-sort-example</span>
+          <span class="pill pill-muted">batch / line sequential</span>
+        </div>
+      </div>
+      <div class="masthead-rule" aria-hidden="true"></div>
+    </header>
+
+    <main>
+      <section class="card" aria-labelledby="inputs-heading">
+        <h2 id="inputs-heading">1 &middot; Input files <span lang="he" dir="rtl">קבצי קלט</span></h2>
+        <p class="hint">
+          Each record is a fixed-width 135-byte line:
+          <code>9(5)</code> customer id, <code>X(50)</code> last name, <code>X(50)</code> first
+          name, <code>9(5)</code> contract id, <code>X(25)</code> comment. Short lines are padded
+          with spaces on read, exactly as GnuCOBOL does.
+        </p>
+
+        <div class="mode-row" role="radiogroup" aria-label="Input mode">
+          <label class="radio">
+            <input type="radio" name="mode" value="generate" checked />
+            <span>Generate test data <em>(create-test-data)</em></span>
+          </label>
+          <label class="radio">
+            <input type="radio" name="mode" value="supply" />
+            <span>Supply my own two files</span>
+          </label>
+        </div>
+
+        <div id="supply-panel" class="grid-2" hidden>
+          <div class="field">
+            <label for="file1">test-file-1.txt <span class="req">at least one required</span></label>
+            <div class="upload-row">
+              <input type="file" id="file1-upload" accept=".txt,text/plain" />
+            </div>
+            <textarea id="file1" spellcheck="false" rows="8" placeholder="Paste fixed-width records, one per line"></textarea>
+            <p class="field-error" id="file1-error" role="alert" hidden></p>
+          </div>
+          <div class="field">
+            <label for="file2">test-file-2.txt <span class="req">at least one required</span></label>
+            <div class="upload-row">
+              <input type="file" id="file2-upload" accept=".txt,text/plain" />
+            </div>
+            <textarea id="file2" spellcheck="false" rows="8" placeholder="Paste fixed-width records, one per line"></textarea>
+            <p class="field-error" id="file2-error" role="alert" hidden></p>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button id="run" class="btn btn-primary" type="button">Run merge &amp; sort</button>
+          <button id="sample" class="btn btn-ghost" type="button">Load sample into the panes</button>
+          <span id="run-state" class="run-state" role="status" aria-live="polite"></span>
+        </div>
+        <p class="field-error" id="form-error" role="alert" hidden></p>
+      </section>
+
+      <section class="card" aria-labelledby="status-heading">
+        <h2 id="status-heading">2 &middot; File status <span lang="he" dir="rtl">סטטוס קבצים</span></h2>
+        <div id="status-empty" class="empty-state">No run yet. Run the program to see its file statuses.</div>
+        <table id="status-table" class="status-table" hidden>
+          <thead>
+            <tr><th>File</th><th>file status</th><th>Message reported by the program</th></tr>
+          </thead>
+          <tbody id="status-body"></tbody>
+        </table>
+      </section>
+
+      <section class="card" aria-labelledby="output-heading">
+        <h2 id="output-heading">3 &middot; Outputs <span lang="he" dir="rtl">פלטים</span></h2>
+        <div class="panes">
+          <article class="pane" data-file="merge-output.txt">
+            <header class="pane-head">
+              <div>
+                <h3>merge-output.txt</h3>
+                <p class="pane-key">MERGE &middot; ASCENDING f-customer-id</p>
+              </div>
+              <span class="count" data-count>&mdash;</span>
+            </header>
+            <pre class="mono" data-pane tabindex="0"><span class="empty-state">Awaiting a run.</span></pre>
+            <footer class="pager">
+              <button class="btn btn-small" data-page-prev type="button" disabled>&larr; Prev</button>
+              <span class="pager-label" data-page-label>Page 0 of 0</span>
+              <button class="btn btn-small" data-page-next type="button" disabled>Next &rarr;</button>
+              <label class="page-size">
+                Rows
+                <select data-page-size>
+                  <option>10</option>
+                  <option selected>25</option>
+                  <option>50</option>
+                  <option>100</option>
+                </select>
+              </label>
+            </footer>
+          </article>
+
+          <article class="pane" data-file="sorted-contract-id.txt">
+            <header class="pane-head">
+              <div>
+                <h3>sorted-contract-id.txt</h3>
+                <p class="pane-key">SORT &middot; DESCENDING f-customer-contract-id</p>
+              </div>
+              <span class="count" data-count>&mdash;</span>
+            </header>
+            <pre class="mono" data-pane tabindex="0"><span class="empty-state">Awaiting a run.</span></pre>
+            <footer class="pager">
+              <button class="btn btn-small" data-page-prev type="button" disabled>&larr; Prev</button>
+              <span class="pager-label" data-page-label>Page 0 of 0</span>
+              <button class="btn btn-small" data-page-next type="button" disabled>Next &rarr;</button>
+              <label class="page-size">
+                Rows
+                <select data-page-size>
+                  <option>10</option>
+                  <option selected>25</option>
+                  <option>50</option>
+                  <option>100</option>
+                </select>
+              </label>
+            </footer>
+          </article>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="console-heading">
+        <h2 id="console-heading">4 &middot; Program console <span lang="he" dir="rtl">פלט המסוף</span></h2>
+        <pre id="console" class="mono console" tabindex="0"><span class="empty-state">Awaiting a run.</span></pre>
+      </section>
+    </main>
+
+    <footer class="footsie">
+      <span>Ported from <code>merge_sort/merge_sort_test.cbl</code> — the COBOL remains the system of record.</span>
+      <span lang="he" dir="rtl">קוד ה-COBOL הוא מקור האמת</span>
+    </footer>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>
