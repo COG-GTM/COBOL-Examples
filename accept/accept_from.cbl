@@ -39,6 +39,14 @@
        01  ws-max-args                  pic 9(3) comp.
        01  ws-idx                       pic 9(3) comp.
 
+      *> Console input is only trusted once every character has been
+      *> checked against this allow-list of printable characters.
+       78  ws-allowed-chars value
+           "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" &
+           "0123456789 .,-_".
+       01  ws-console-input             pic x(50).
+       01  ws-console-check             pic x(50).
+
        procedure division.
        main-procedure.
 
@@ -138,10 +146,26 @@
            display "accept from user name: " ws-input
 
       *> FROM CONSOLE is the default if not specified. Reads user input
-      *> from the console.
+      *> from the console. Console input is attacker-controlled, so it is
+      *> read into a dedicated buffer, validated against an allow-list of
+      *> characters and only copied into ws-input when it passes.
            display "Enter value: " with no advancing
-           accept ws-input from console
-           display "accept from console: " ws-input
+           move spaces to ws-console-input
+           accept ws-console-input from console
+
+      *> Map every allow-listed character to a space; anything left over
+      *> is a character that is not permitted.
+           move ws-console-input to ws-console-check
+           inspect ws-console-check converting ws-allowed-chars to spaces
+
+           if ws-console-check not = spaces then
+               move spaces to ws-input
+               display "accept from console: rejected, input may only "
+                   "contain letters, digits, space . , - _"
+           else
+               move ws-console-input to ws-input
+               display "accept from console: " ws-input
+           end-if
 
       *> After this point, the final ACCEPTs require screen mode so
       *> the screen will blank and text positions must be provied.
