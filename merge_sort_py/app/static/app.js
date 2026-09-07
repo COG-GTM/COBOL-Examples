@@ -179,7 +179,11 @@ async function loadPane(file, page) {
 }
 
 function resetPanes(message) {
+  // Clearing the panes also abandons the run they belonged to, so a page request still in
+  // flight cannot land on top of the message being shown here.
+  state.runId = null;
   PANES.forEach(({ file }) => {
+    state.panes[file].request += 1;
     const pane = paneElement(file);
     const body = $("[data-pane]", pane);
     body.textContent = "";
@@ -199,19 +203,15 @@ function validate(mode) {
   if (mode !== "supply") {
     return true;
   }
-  let ok = true;
-  if (!$("#file1").value.trim()) {
+  // An empty file is zero records and a blank line is one blank 135-byte record (D-005), so
+  // neither is a validation failure. What is missing is a *choice*: both boxes left untouched.
+  if ($("#file1").value === "" && $("#file2").value === "") {
     setError("#file1-error", "test-file-1.txt is required.");
-    ok = false;
-  }
-  if (!$("#file2").value.trim()) {
     setError("#file2-error", "test-file-2.txt is required.");
-    ok = false;
+    setError("#form-error", "Supply at least one input file, or switch to generated test data.");
+    return false;
   }
-  if (!ok) {
-    setError("#form-error", "Supply both input files, or switch to generated test data.");
-  }
-  return ok;
+  return true;
 }
 
 async function run() {

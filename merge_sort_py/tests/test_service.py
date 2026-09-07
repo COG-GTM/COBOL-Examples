@@ -200,3 +200,24 @@ def test_oversized_body_is_rejected_before_it_is_parsed():
     )
     assert response.status_code == 413
     assert str(service.MAX_INPUT_BYTES) in response.json()["detail"]
+
+
+def test_a_body_with_no_declared_length_is_refused_rather_than_buffered():
+    response = client.post(
+        "/api/runs",
+        content=iter([b'{"generate": true}']),  # httpx sends this chunked
+        headers={"content-type": "application/json"},
+    )
+    assert response.status_code == 411
+
+
+def test_an_unencodable_lone_surrogate_is_a_client_error_not_a_500():
+    response = client.post(
+        "/api/runs",
+        content=b'{"test_file_1": "\\ud800", "test_file_2": ""}',
+        headers={"content-type": "application/json"},
+    )
+    assert response.status_code == 422
+    assert "test_file_1" in response.text
+    # The unserialisable value itself must not be echoed back into the response.
+    assert all("input" not in error for error in response.json()["detail"])

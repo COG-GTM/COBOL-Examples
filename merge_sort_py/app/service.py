@@ -12,6 +12,7 @@ from typing import Annotated, Any, Final, Literal
 
 from fastapi import Body, FastAPI, HTTPException, Query, Request, Response
 from fastapi import Path as PathParam
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
@@ -54,6 +55,8 @@ store: RunStore = InMemoryRunStore()
 # Content type for the byte-exact endpoints: the bodies are the program's own bytes.
 RAW_MEDIA_TYPE: Final = "text/plain; charset=utf-8"
 
+BODY_METHODS: Final = frozenset({"POST", "PUT", "PATCH"})
+
 
 @app.middleware("http")
 async def limit_body_size(request: Request, call_next: RequestResponseEndpoint) -> Response:
@@ -62,13 +65,22 @@ async def limit_body_size(request: Request, call_next: RequestResponseEndpoint) 
     ``MAX_INPUT_BYTES`` is enforced twice on purpose: here against the whole HTTP body
     (JSON syntax and escaping included), and again in :func:`create_run` against the decoded
     file content, which is what the record cap is expressed in.
+
+    A body with no declared length cannot be checked before it is buffered, so it is refused
+    outright rather than trusted: the cap has to hold before any allocation, not after.
     """
-    declared = request.headers.get("content-length")
-    if declared is not None and declared.isdigit() and int(declared) > MAX_INPUT_BYTES:
-        return JSONResponse(
-            status_code=413,
-            content={"detail": f"Request body exceeds {MAX_INPUT_BYTES} bytes."},
-        )
+    if request.method in BODY_METHODS:
+        declared = request.headers.get("content-length")
+        if declared is None or not declared.isdigit():
+            return JSONResponse(
+                status_code=411,
+                content={"detail": "A declared Content-Length is required; chunked bodies are refused."},
+            )
+        if int(declared) > MAX_INPUT_BYTES:
+            return JSONResponse(
+                status_code=413,
+                content={"detail": f"Request body exceeds {MAX_INPUT_BYTES} bytes."},
+            )
     return await call_next(request)
 
 
@@ -218,6 +230,35 @@ def _page(
     )
 
 
+@app.exception_handler(RequestValidationError)
+async def validation_error_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
+    """Report the field that failed, never the value.
+
+    FastAPI's default handler echoes the offending input, and an input that JSON admits but
+    UTF-8 does not (a lone surrogate) then fails to serialise, turning a 422 into a 500.
+    """
+    return JSONResponse(
+        status_code=422,
+        content={
+            "detail": [
+                {"loc": [str(part) for part in error["loc"]], "msg": error["msg"], "type": error["type"]}
+                for error in exc.errors()
+            ]
+        },
+    )
+
+
+def _as_byte_string(text: str, field: str) -> str:
+    """Encodable text only: JSON admits lone surrogates, a COBOL byte stream does not."""
+    try:
+        return to_byte_string(text)
+    except UnicodeEncodeError as exc:
+        raise HTTPException(
+            status_code=422,
+            detail=f"{field} is not encodable text: {exc.reason} at position {exc.start}.",
+        ) from exc
+
+
 @app.get("/api/health")
 def health() -> dict[str, object]:
     return {"status": "ok", "program": "merge-sort-example", "runs": len(store)}
@@ -231,8 +272,8 @@ def create_run(request: Annotated[RunRequest, Body()]) -> RunSummary:
     if generated:
         run = run_program()
     else:
-        file_1 = to_byte_string(request.test_file_1 or "")
-        file_2 = to_byte_string(request.test_file_2 or "")
+        file_1 = _as_byte_string(request.test_file_1 or "", "test_file_1")
+        file_2 = _as_byte_string(request.test_file_2 or "", "test_file_2")
         total = len(to_bytes(file_1)) + len(to_bytes(file_2))
         if total > MAX_INPUT_BYTES:
             raise HTTPException(
