@@ -35,22 +35,51 @@ function renderError(message) {
   result.innerHTML = `<div class="result-error">${escapeHtml(message)}</div>`;
 }
 
+let generation = 0;
+let inFlight = null;
+
+function supersede() {
+  generation += 1;
+  if (inFlight) {
+    inFlight.abort();
+    inFlight = null;
+  }
+  return generation;
+}
+
 async function submit(form) {
   const mode = form.dataset.mode;
   const params = new URLSearchParams();
   for (const input of form.querySelectorAll("input")) {
     params.set(input.name, input.value);
   }
+  const controller = new AbortController();
+  const ticket = supersede();
+  inFlight = controller;
   try {
-    const response = await fetch(`/api/search/${mode}?${params.toString()}`);
+    const response = await fetch(`/api/search/${mode}?${params.toString()}`, {
+      signal: controller.signal,
+    });
+    if (ticket !== generation) {
+      return;
+    }
     if (!response.ok) {
       const body = await response.json().catch(() => ({}));
       renderError(body.detail ? String(body.detail) : `Request failed (${response.status}).`);
       return;
     }
-    render(await response.json());
+    const payload = await response.json();
+    if (ticket === generation) {
+      render(payload);
+    }
   } catch (error) {
-    renderError(`Service unavailable: ${error.message}`);
+    if (error.name !== "AbortError" && ticket === generation) {
+      renderError(`Service unavailable: ${error.message}`);
+    }
+  } finally {
+    if (inFlight === controller) {
+      inFlight = null;
+    }
   }
 }
 
@@ -70,6 +99,7 @@ for (const tab of document.querySelectorAll(".tab")) {
     for (const panel of document.querySelectorAll(".panel")) {
       panel.classList.toggle("is-hidden", panel.id !== `panel-${tab.dataset.mode}`);
     }
+    supersede();
     result.innerHTML = '<div class="result-idle">Run a lookup to see the record.</div>';
   });
 }
