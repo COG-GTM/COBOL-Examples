@@ -74,7 +74,12 @@ main {
   align-items: start;
 }
 
+/* Grid and flex children default to min-width:auto, which lets the 105-column report
+   stretch the page instead of scrolling inside its own pane. */
+main > * { min-width: 0; }
+
 .card {
+  min-width: 0;
   background: #fff;
   border: 1px solid var(--leumi-line);
   border-radius: 10px;
