@@ -29,6 +29,8 @@ from .report_writer import (
 
 LEGACY_INPUT = Path(__file__).resolve().parents[2] / "report_writer" / "input.txt"
 STATIC_DIR = Path(__file__).resolve().parent / "static"
+#: Copy of the legacy sample shipped as package data, for installs without the source tree.
+BUNDLED_SAMPLE_INPUT = STATIC_DIR / "sample-input.txt"
 
 MAX_INPUT_BYTES = 1_000_000
 #: Guard against a small body expanding into a huge report (blank records are still records).
@@ -142,11 +144,18 @@ def _to_response(run_id: str, run: ReportRun, input_text: str) -> ReportResponse
     )
 
 
+def _record_count(input_text: str) -> int:
+    """Records the reader will yield: a trailing newline terminates, it does not add a record."""
+    if not input_text:
+        return 0
+    return input_text.count("\n") + (0 if input_text.endswith("\n") else 1)
+
+
 @app.post("/api/reports", response_model=ReportResponse)
 def create_report(request: ReportRequest) -> ReportResponse:
     if len(request.input_text.encode("utf-8")) > MAX_INPUT_BYTES:
         raise HTTPException(status_code=413, detail="Input file too large")
-    if request.input_text.count("\n") + 1 > MAX_INPUT_RECORDS:
+    if _record_count(request.input_text) > MAX_INPUT_RECORDS:
         raise HTTPException(status_code=413, detail=f"Input file has more than {MAX_INPUT_RECORDS} records")
     run = run_report(request.input_text)
     response = _to_response(uuid.uuid4().hex, run, request.input_text)
@@ -175,9 +184,15 @@ def get_report_page(run_id: str, page_number: int) -> PageView:
 
 @app.get("/api/sample-input")
 def sample_input() -> dict[str, str]:
-    """The repository's own ``report_writer/input.txt``, read only."""
-    text = LEGACY_INPUT.read_text(encoding="utf-8") if LEGACY_INPUT.exists() else ""
-    return {"input_text": text}
+    """The repository's own ``report_writer/input.txt``, read only.
+
+    Served from the legacy tree in a source checkout and from the packaged copy otherwise,
+    since an installed wheel has no ``report_writer/`` above it.
+    """
+    source = LEGACY_INPUT if LEGACY_INPUT.exists() else BUNDLED_SAMPLE_INPUT
+    if not source.exists():
+        raise HTTPException(status_code=404, detail="Sample input is not available")
+    return {"input_text": source.read_text(encoding="utf-8")}
 
 
 @app.get("/")

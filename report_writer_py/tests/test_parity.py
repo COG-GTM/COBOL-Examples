@@ -5,6 +5,9 @@ Without GnuCOBOL these tests SKIP — they never pass silently.
 
 from __future__ import annotations
 
+import random
+import string
+
 import pytest
 
 from app.report_writer import ReportRun, run_report
@@ -34,6 +37,26 @@ def test_seeded_regression_is_caught_by_the_harness() -> None:
 
     diffing = [reconcile(fixture, broken_port) for fixture in FIXTURES]
     assert any(not result.ok for result in diffing), "seeded regression was not detected"
+
+
+@requires_cobc
+def test_parity_over_randomised_records() -> None:
+    """Differential check beyond the curated fixtures, over arbitrary record bytes.
+
+    Seeded so a failure is reproducible; the alphabet spans digits, letters, spaces and
+    multibyte characters, and record lengths straddle the 31-byte layout.
+    """
+    rng = random.Random(20260907)
+    alphabet = string.digits + string.ascii_letters + "   " + "אשé€"
+    for case in range(5):
+        rows = [
+            "".join(rng.choice(alphabet) for _ in range(rng.randint(0, 40)))
+            for _ in range(rng.randint(1, 45))
+        ]
+        text = "".join(row + "\n" for row in rows)
+        fixture = Fixture(f"random_{case}", "randomised differential case", text)
+        result = reconcile(fixture)
+        assert result.ok, "\n".join(result.diffs)
 
 
 def test_harness_skips_without_cobol_toolchain(monkeypatch: pytest.MonkeyPatch) -> None:

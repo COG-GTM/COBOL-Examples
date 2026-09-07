@@ -2,7 +2,15 @@ from __future__ import annotations
 
 from fastapi.testclient import TestClient
 
-from app.service import MAX_INPUT_RECORDS, ReportResponse, RunStore, app
+from app.service import (
+    BUNDLED_SAMPLE_INPUT,
+    LEGACY_INPUT,
+    MAX_INPUT_RECORDS,
+    ReportResponse,
+    RunStore,
+    _record_count,
+    app,
+)
 from parity.fixtures import make_record
 
 client = TestClient(app)
@@ -48,8 +56,16 @@ def test_oversized_input_is_rejected() -> None:
     assert response.status_code == 413
 
 
+def test_record_count_does_not_count_the_terminating_newline() -> None:
+    assert _record_count("") == 0
+    assert _record_count("a\n") == 1
+    assert _record_count("a") == 1
+    assert _record_count("a\nb\n") == 2
+    assert _record_count("a\nb") == 2
+
+
 def test_too_many_records_is_rejected() -> None:
-    response = client.post("/api/reports", json={"input_text": "\n" * MAX_INPUT_RECORDS})
+    response = client.post("/api/reports", json={"input_text": "\n" * (MAX_INPUT_RECORDS + 1)})
     assert response.status_code == 413
 
 
@@ -67,6 +83,11 @@ def test_run_store_evicts_oldest_runs() -> None:
     assert store.get(ids[0]) is None
     assert store.get(ids[1]) is not None
     assert store.get(ids[2]) is not None
+
+
+def test_bundled_sample_matches_the_legacy_input_file() -> None:
+    # The wheel ships this copy; drift would make /api/sample-input lie about the legacy data.
+    assert BUNDLED_SAMPLE_INPUT.read_bytes() == LEGACY_INPUT.read_bytes()
 
 
 def test_sample_input_and_index() -> None:
