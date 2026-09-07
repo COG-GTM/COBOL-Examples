@@ -225,11 +225,13 @@ async function runProgram(event) {
   for (const key of Object.keys(fields)) {
     payload[key] = fields[key].value;
   }
+  // Claim the newest generation before validating, so a rejected submission still
+  // invalidates any earlier request that is still in flight.
+  const request = ++latestRequest;
   if (payload.delimiter.length !== 1) {
     setStatus("ws-delimiter is PIC X: enter exactly one character.", "error");
     return;
   }
-  const request = ++latestRequest;
   setStatus("Running…");
   try {
     const response = await fetch("/api/runs", {
