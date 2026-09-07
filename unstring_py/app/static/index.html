@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bank Leumi · UNSTRING Parsing Service</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <header class="leumi-header">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-names">
+          <span class="brand-he" lang="he" dir="rtl">בנק לאומי</span>
+          <span class="brand-en">Bank Leumi</span>
+        </span>
+      </div>
+      <div class="header-title">
+        <h1>Delimited String Decomposition</h1>
+        <p>Migrated from GnuCOBOL <code>unstring-example</code> · parity-verified against the compiled program</p>
+      </div>
+    </header>
+
+    <main>
+      <section class="panel form-panel">
+        <h2>Working storage input</h2>
+        <form id="run-form" autocomplete="off">
+          <label>
+            <span>Source string <em>ws-source-str</em> · examples 1–3</span>
+            <input id="simple-source" name="simple_source" maxlength="256" />
+          </label>
+          <label>
+            <span>Source string · example 4 (multiple delimiters)</span>
+            <input id="multi-delim-source" name="multi_delim_source" maxlength="256" />
+          </label>
+          <label>
+            <span>Source string · example 5 (multiple destinations)</span>
+            <input id="multi-dest-source" name="multi_dest_source" maxlength="256" />
+          </label>
+          <div class="row">
+            <label class="narrow">
+              <span>Delimiter <em>ws-delimiter</em></span>
+              <input id="delimiter" name="delimiter" maxlength="8" />
+            </label>
+            <label class="narrow">
+              <span>Amount <em>ws-source-num · PIC $999,999.99</em></span>
+              <input id="amount" name="amount" maxlength="32" inputmode="decimal" />
+            </label>
+          </div>
+          <div class="actions">
+            <button type="submit" id="run-button">Run program</button>
+            <button type="button" id="reset-button" class="secondary">Restore program literals</button>
+          </div>
+          <p class="hint">
+            Fields wider than <code>PIC X(30)</code> are truncated by the MOVE before UNSTRING sees them,
+            exactly as the COBOL does.
+          </p>
+        </form>
+        <p id="status" class="status" role="status"></p>
+      </section>
+
+      <section class="panel" id="results-panel" hidden>
+        <div class="results-head">
+          <h2>Results</h2>
+          <nav id="example-nav" class="example-nav" aria-label="Examples"></nav>
+        </div>
+        <div id="examples"></div>
+      </section>
+
+      <section class="panel" id="console-panel" hidden>
+        <h2>Program output <span class="sub">stdout, byte for byte</span></h2>
+        <pre id="console" class="mono-pane" aria-label="Program output"></pre>
+      </section>
+
+      <section class="panel empty-state" id="empty-state">
+        <p>No run yet. Enter the working-storage values above and select <strong>Run program</strong>.</p>
+      </section>
+    </main>
+
+    <footer>
+      <span lang="he" dir="rtl">בנק לאומי לישראל בע"מ</span>
+      <span>Legacy system of record: <code>unstring/unstring.cbl</code> — unmodified.</span>
+    </footer>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>
