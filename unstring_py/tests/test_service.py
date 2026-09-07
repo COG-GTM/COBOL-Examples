@@ -74,6 +74,18 @@ def test_non_numeric_amount_is_rejected():
     assert response.status_code == 422
 
 
+@pytest.mark.parametrize("amount", ["1e9999999", "9" * 30, "NaN", "Infinity"])
+def test_amounts_wider_than_a_cobol_literal_are_rejected_not_crashed(amount):
+    assert client.post("/api/runs", json={"amount": amount}).status_code == 422
+
+
+def test_working_storage_reports_the_picture_constrained_amount():
+    body = client.post("/api/runs", json={"amount": "91234567.899"}).json()
+    # High-order and low-order truncation both happen in the MOVE (D-006/D-007).
+    assert body["working_storage"]["source_num"] == "234567.89"
+    assert body["examples"][5]["stats"]["edited_value"] == "$234,567.89"
+
+
 def test_run_store_is_bounded_lru():
     store = RunStore(capacity=2)
     first = store.put({"n": 1})

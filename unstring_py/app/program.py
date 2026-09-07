@@ -26,6 +26,7 @@ from app.cobol_types import (
     from_byte_string,
     move_to_alphanumeric,
     move_to_byte_source,
+    move_to_source_num,
     move_to_unsigned_int,
 )
 from app.unstring import Delimiter, ReceivedField, Receiver, unstring
@@ -349,8 +350,10 @@ class Program:
         self._display("EX 6 : UNSTRING FORMATTED NUMBER")
         self._display()
 
-        self.ws.source_num = self.source_num
-        edited = format_source_num(self.source_num)
+        # The MOVE is what constrains the value to the PICTURE (D-006/D-007); working
+        # storage holds the stored value, not the sender.
+        self.ws.source_num = move_to_source_num(self.source_num)
+        edited = format_source_num(self.ws.source_num)
         view.source = edited
         self._display("SOURCE VALUE: " + edited)
 
@@ -368,7 +371,7 @@ class Program:
         view.stats = {
             "edited_value": edited,
             "parts": list(self.ws.dest_num),
-            "amount": str(format_source_num(self.source_num)),
+            "amount": str(self.ws.source_num),
         }
         return view
 

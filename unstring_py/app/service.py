@@ -39,6 +39,10 @@ MAX_INPUT_LEN = 256
 #: Bound on the run store, evicted least-recently-used.
 MAX_RUNS = 200
 EXAMPLE_COUNT = 6
+#: A COBOL numeric literal holds at most 18 digits; anything wider could never be moved
+#: into ``PIC $999,999.99`` in the first place and is rejected instead of blowing up in
+#: ``Decimal.quantize``.
+MAX_AMOUNT_DIGITS = 18
 
 
 class RunRequest(BaseModel):
@@ -92,6 +96,13 @@ def _amount(value: str) -> Decimal:
         raise HTTPException(status_code=422, detail=f"amount is not numeric: {value!r}") from exc
     if not parsed.is_finite():
         raise HTTPException(status_code=422, detail="amount must be finite")
+    exponent = parsed.as_tuple().exponent
+    fraction_digits = -int(exponent) if isinstance(exponent, int) and exponent < 0 else 0
+    if parsed.adjusted() >= MAX_AMOUNT_DIGITS or fraction_digits > MAX_AMOUNT_DIGITS:
+        raise HTTPException(
+            status_code=422,
+            detail=f"amount exceeds the {MAX_AMOUNT_DIGITS} digits a COBOL numeric literal holds",
+        )
     return parsed
 
 
