@@ -66,4 +66,14 @@ FIXTURES: tuple[Fixture, ...] = (
         make_record("999999", "X" * 20, "ZZZ", "99") + "\n",
     ),
     Fixture("blank_line", "an entirely blank input record", "\n000007Grace               BIO09\n"),
+    Fixture(
+        "embedded_spaces",
+        "leading and trailing spaces inside the X(20)/XXX fields must survive verbatim",
+        "000001  Alice             MTH07\n000002Bob                  Y 09\n",
+    ),
+    Fixture(
+        "multibyte_utf8",
+        "multibyte UTF-8 in the name field: COBOL applies the layout to bytes, not characters",
+        "000003שלום עולם          HEB04\n000004Renée               FRA05\n",
+    ),
 )

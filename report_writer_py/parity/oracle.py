@@ -24,8 +24,8 @@ def cobc_available() -> bool:
     return shutil.which(COBC) is not None
 
 
-def run_cobol(input_text: str) -> str:
-    """Run the COBOL program over ``input_text`` and return the produced report."""
+def run_cobol(input_text: str) -> bytes:
+    """Run the COBOL program over ``input_text`` and return the produced report bytes."""
     if not cobc_available():
         raise CobolToolchainMissing("GnuCOBOL 'cobc' is not installed")
 
@@ -43,10 +43,10 @@ def run_cobol(input_text: str) -> str:
         if compile_result.returncode != 0:
             raise RuntimeError(f"cobc failed: {compile_result.stderr}")
 
-        (work / "input.txt").write_text(input_text, encoding="utf-8")
+        (work / "input.txt").write_bytes(input_text.encode("utf-8"))
         run_result = subprocess.run(
             [f"./{binary.name}"], cwd=work, capture_output=True, text=True, check=False
         )
         if run_result.returncode != 0:
             raise RuntimeError(f"report-test failed: {run_result.stderr}")
-        return (work / "report.txt").read_text(encoding="utf-8")
+        return (work / "report.txt").read_bytes()

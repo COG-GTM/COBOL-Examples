@@ -7,7 +7,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from .cobol_types import cobol_edit_zz9, cobol_move_alphanumeric, cobol_move_display_numeric
+from .cobol_types import (
+    cobol_edit_zz9,
+    cobol_move_alphanumeric,
+    cobol_move_display_numeric,
+    from_byte_string,
+)
 from .record import (
     F_TEST_MAJOR,
     F_TEST_NUM_COURSES,
@@ -62,6 +67,10 @@ class ReportPage:
     def text(self) -> str:
         return "\n".join(self.lines)
 
+    def display_lines(self) -> list[str]:
+        """The page decoded back to text for JSON transport."""
+        return [from_byte_string(line) for line in self.lines]
+
 
 @dataclass
 class ReportRun:
@@ -72,12 +81,19 @@ class ReportRun:
     detail_count: int
     record_count: int
 
-    def report_text(self) -> str:
+    def report_byte_string(self) -> str:
+        """The print file exactly as COBOL would write it, one character per byte."""
         lines: list[str] = []
         for page in self.pages:
             lines.extend(page.lines)
         lines.append("")  # trailing physical line, ruling D-003
         return "\n".join(lines) + "\n"
+
+    def report_bytes(self) -> bytes:
+        return self.report_byte_string().encode("latin-1")
+
+    def report_text(self) -> str:
+        return from_byte_string(self.report_byte_string())
 
 
 class ReportWriter:
@@ -125,10 +141,12 @@ class ReportWriter:
         line = _place(
             line,
             DETAIL_COLUMNS[F_TEST_STUDENT_NAME.name],
-            cobol_move_alphanumeric(record.student_name, F_TEST_STUDENT_NAME.width),
+            cobol_move_alphanumeric(record.student_name_raw, F_TEST_STUDENT_NAME.width),
         )
         line = _place(
-            line, DETAIL_COLUMNS[F_TEST_MAJOR.name], cobol_move_alphanumeric(record.major, F_TEST_MAJOR.width)
+            line,
+            DETAIL_COLUMNS[F_TEST_MAJOR.name],
+            cobol_move_alphanumeric(record.major_raw, F_TEST_MAJOR.width),
         )
         line = _place(
             line,

@@ -8,6 +8,7 @@ store can be swapped in later.
 from __future__ import annotations
 
 import uuid
+from collections import OrderedDict
 from pathlib import Path
 from threading import Lock
 
@@ -30,6 +31,10 @@ LEGACY_INPUT = Path(__file__).resolve().parents[2] / "report_writer" / "input.tx
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 
 MAX_INPUT_BYTES = 1_000_000
+#: Guard against a small body expanding into a huge report (blank records are still records).
+MAX_INPUT_RECORDS = 20_000
+#: Runs are kept only so the pager can re-fetch them; oldest are evicted.
+MAX_RETAINED_RUNS = 200
 
 
 class ReportRequest(BaseModel):
@@ -64,19 +69,30 @@ class ReportResponse(BaseModel):
 
 
 class RunStore:
-    """In-memory adapter; the interface is what a document store would implement."""
+    """Bounded in-memory adapter; the interface is what a document store would implement.
 
-    def __init__(self) -> None:
-        self._runs: dict[str, ReportResponse] = {}
+    Retention is capped so a long-lived worker cannot accumulate every report ever run;
+    evicted ids answer 404 like any unknown id.
+    """
+
+    def __init__(self, max_entries: int = MAX_RETAINED_RUNS) -> None:
+        self._runs: OrderedDict[str, ReportResponse] = OrderedDict()
+        self._max_entries = max_entries
         self._lock = Lock()
 
     def put(self, response: ReportResponse) -> None:
         with self._lock:
             self._runs[response.id] = response
+            self._runs.move_to_end(response.id)
+            while len(self._runs) > self._max_entries:
+                self._runs.popitem(last=False)
 
     def get(self, run_id: str) -> ReportResponse | None:
         with self._lock:
-            return self._runs.get(run_id)
+            response = self._runs.get(run_id)
+            if response is not None:
+                self._runs.move_to_end(run_id)
+            return response
 
 
 store = RunStore()
@@ -111,7 +127,7 @@ def _to_response(run_id: str, run: ReportRun, input_text: str) -> ReportResponse
     return ReportResponse(
         id=run_id,
         report_text=run.report_text(),
-        pages=[PageView(number=page.number, lines=page.lines) for page in run.pages],
+        pages=[PageView(number=page.number, lines=page.display_lines()) for page in run.pages],
         console=run.console,
         detail_count=run.detail_count,
         record_count=run.record_count,
@@ -130,6 +146,8 @@ def _to_response(run_id: str, run: ReportRun, input_text: str) -> ReportResponse
 def create_report(request: ReportRequest) -> ReportResponse:
     if len(request.input_text.encode("utf-8")) > MAX_INPUT_BYTES:
         raise HTTPException(status_code=413, detail="Input file too large")
+    if request.input_text.count("\n") + 1 > MAX_INPUT_RECORDS:
+        raise HTTPException(status_code=413, detail=f"Input file has more than {MAX_INPUT_RECORDS} records")
     run = run_report(request.input_text)
     response = _to_response(uuid.uuid4().hex, run, request.input_text)
     store.put(response)

@@ -45,3 +45,15 @@ reports parity it did not verify.
 
 All endpoints are read-only; nothing writes to the legacy tree and there is no write/batch
 path to port — the COBOL program has no output other than its print file.
+
+### Limits and retention
+
+Requests are capped at 1,000,000 bytes and 20,000 records (`MAX_INPUT_BYTES`,
+`MAX_INPUT_RECORDS`), because a small body of blank lines still expands into pages of print
+lines. Runs are held only so the pager can re-fetch them: `RunStore` keeps the most recent 200
+(`MAX_RETAINED_RUNS`) and evicts least-recently-used entries, which then answer `404` like any
+unknown id. Swap in a document store when runs need to outlive the process.
+
+The service has **no authentication** — see "Blockers before cutover" in the PR. It is a
+read-only demo over data the caller supplied in the same request, and the security posture
+(IdP, authorization model) is deliberately not decided here.

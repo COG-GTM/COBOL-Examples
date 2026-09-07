@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .cobol_types import PictureField, pad_record_area
+from .cobol_types import PictureField, from_byte_string, pad_record_area, to_byte_string
 
 F_TEST_STUDENT_ID = PictureField("f-test-student-id", start=1, width=6, numeric=True)
 F_TEST_STUDENT_NAME = PictureField("f-test-student-name", start=7, width=20, numeric=False)
@@ -20,7 +20,12 @@ INITIAL_RECORD_AREA = " " * RECORD_LENGTH
 
 @dataclass(frozen=True)
 class TestRecord:
-    """One occurrence of ``f-test-record``, held as raw bytes plus trimmed views."""
+    """One occurrence of ``f-test-record``.
+
+    ``record_area`` holds the record's *bytes*, one character per byte, so field offsets
+    match what GnuCOBOL reads even for multibyte input. The raw fixed-width values feed the
+    report; the trimmed properties exist only for the JSON views.
+    """
 
     __test__ = False  # not a pytest test class; the name mirrors 01 f-test-record
 
@@ -28,19 +33,29 @@ class TestRecord:
 
     @classmethod
     def from_line(cls, line: str) -> TestRecord:
-        return cls(pad_record_area(line.rstrip("\r\n"), RECORD_LENGTH))
+        return cls(pad_record_area(to_byte_string(line.rstrip("\r\n")), RECORD_LENGTH))
 
     @property
     def student_id_raw(self) -> str:
         return F_TEST_STUDENT_ID.extract(self.record_area)
 
     @property
+    def student_name_raw(self) -> str:
+        """The full X(20) field as stored; this is what the report line prints."""
+        return F_TEST_STUDENT_NAME.extract(self.record_area)
+
+    @property
+    def major_raw(self) -> str:
+        """The full XXX field as stored; this is what the report line prints."""
+        return F_TEST_MAJOR.extract(self.record_area)
+
+    @property
     def student_name(self) -> str:
-        return F_TEST_STUDENT_NAME.extract(self.record_area).strip()
+        return from_byte_string(self.student_name_raw).strip()
 
     @property
     def major(self) -> str:
-        return F_TEST_MAJOR.extract(self.record_area).strip()
+        return from_byte_string(self.major_raw).strip()
 
     @property
     def num_courses_raw(self) -> str:

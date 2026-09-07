@@ -35,15 +35,15 @@ class FixtureResult:
         return not self.diffs
 
 
-def _diff_lines(fixture: Fixture, cobol_text: str, python_text: str) -> list[str]:
-    cobol_lines = cobol_text.split("\n")
-    python_lines = python_text.split("\n")
+def _diff_lines(fixture: Fixture, cobol_report: bytes, python_report: bytes) -> list[str]:
+    cobol_lines = cobol_report.split(b"\n")
+    python_lines = python_report.split(b"\n")
     diffs: list[str] = []
     if len(cobol_lines) != len(python_lines):
         diffs.append(f"{fixture.name}: line count cobol={len(cobol_lines)} python={len(python_lines)}")
     for index in range(max(len(cobol_lines), len(python_lines))):
-        expected = cobol_lines[index] if index < len(cobol_lines) else "<missing>"
-        actual = python_lines[index] if index < len(python_lines) else "<missing>"
+        expected = cobol_lines[index] if index < len(cobol_lines) else b"<missing>"
+        actual = python_lines[index] if index < len(python_lines) else b"<missing>"
         if expected != actual:
             diffs.append(f"{fixture.name}: line {index + 1}\n  cobol : {expected!r}\n  python: {actual!r}")
     return diffs
@@ -51,9 +51,9 @@ def _diff_lines(fixture: Fixture, cobol_text: str, python_text: str) -> list[str
 
 def reconcile(fixture: Fixture, port: PortRunner = run_report) -> FixtureResult:
     """Diff one fixture field by field. Raises ``CobolToolchainMissing`` if no cobc."""
-    cobol_text = run_cobol(fixture.input_text)
-    python_text = port(fixture.input_text).report_text()
-    return FixtureResult(fixture, _diff_lines(fixture, cobol_text, python_text))
+    cobol_report = run_cobol(fixture.input_text)
+    python_report = port(fixture.input_text).report_bytes()
+    return FixtureResult(fixture, _diff_lines(fixture, cobol_report, python_report))
 
 
 def reconcile_all(port: PortRunner = run_report) -> list[FixtureResult]:

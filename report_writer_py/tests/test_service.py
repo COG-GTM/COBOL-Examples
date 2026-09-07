@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from fastapi.testclient import TestClient
 
-from app.service import app
+from app.service import MAX_INPUT_RECORDS, ReportResponse, RunStore, app
 from parity.fixtures import make_record
 
 client = TestClient(app)
@@ -46,6 +46,27 @@ def test_empty_input_is_not_an_error() -> None:
 def test_oversized_input_is_rejected() -> None:
     response = client.post("/api/reports", json={"input_text": "x" * 1_000_001})
     assert response.status_code == 413
+
+
+def test_too_many_records_is_rejected() -> None:
+    response = client.post("/api/reports", json={"input_text": "\n" * MAX_INPUT_RECORDS})
+    assert response.status_code == 413
+
+
+def test_run_store_evicts_oldest_runs() -> None:
+    store = RunStore(max_entries=2)
+    ids = []
+    for index in range(3):
+        response = client.post(
+            "/api/reports", json={"input_text": make_record(f"{index:06d}", "N", "ART", "01") + "\n"}
+        ).json()
+        model = ReportResponse.model_validate(response)
+        store.put(model)
+        ids.append(model.id)
+
+    assert store.get(ids[0]) is None
+    assert store.get(ids[1]) is not None
+    assert store.get(ids[2]) is not None
 
 
 def test_sample_input_and_index() -> None:

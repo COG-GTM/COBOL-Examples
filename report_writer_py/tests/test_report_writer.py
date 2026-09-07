@@ -15,6 +15,19 @@ from app.report_writer import (
 from parity.fixtures import make_record
 
 
+def test_fixed_width_fields_keep_their_spaces_in_the_report() -> None:
+    run = run_report("000001  Alice             MTH07\n")
+    line = run.pages[0].lines[5]
+    assert line[14:34] == "  Alice             "
+    assert line[39:42] == "MTH"
+
+
+def test_multibyte_input_is_laid_out_by_bytes() -> None:
+    run = run_report("000003שלום עולם          HEB04\n")
+    # 'שלום עולם' is 17 bytes, so the layout shifts exactly as it does in COBOL.
+    assert len(run.pages[0].lines[5].encode("latin-1")) == len(run.report_bytes().split(b"\n")[5])
+
+
 def test_record_is_padded_to_31_bytes() -> None:
     record = TestRecord.from_line("000001Alice")
     assert len(record.record_area) == RECORD_LENGTH
