@@ -250,7 +250,8 @@ async function runProgram(event) {
 form.addEventListener("submit", runProgram);
 document.getElementById("reset-button").addEventListener("click", () => {
   fillDefaults();
-  setStatus("");
+  // Restore the results too, so what is displayed always matches the inputs.
+  form.requestSubmit();
 });
 
 loadDefaults().then(() => form.requestSubmit());

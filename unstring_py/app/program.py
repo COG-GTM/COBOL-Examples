@@ -117,7 +117,7 @@ class Program:
         if self._current is not None:
             self._current.lines.append(text)
 
-    def _begin(self, number: int, title: str, source: str) -> ExampleView:
+    def _begin(self, number: int, title: str, source: str = "") -> ExampleView:
         view = ExampleView(number=number, title=title, source=from_byte_string(source))
         self.examples.append(view)
         self._current = view
@@ -223,15 +223,14 @@ class Program:
         return view
 
     def example_4_multiple_delimiters(self) -> ExampleView:
+        view = self._begin(4, "UNSTRING WITH MULTIPLE DELIMITERS")
         self._display()
         self._display(RULE)
         self._display("EX 4 : UNSTRING WITH MULTIPLE DELIMITERS ")
 
         self.ws.pointer = 1
         self.ws.source_str = self.multi_delim_source
-        view = self._begin(4, "UNSTRING WITH MULTIPLE DELIMITERS", self.ws.source_str)
-        # The header lines above belong to example 4 even though the view opens after
-        # the MOVE, matching the order of the DISPLAY statements in the source.
+        view.source = from_byte_string(self.ws.source_str)
         self._display()
         self._display("SOURCE STRING: " + self.ws.source_str)
 
@@ -282,14 +281,13 @@ class Program:
         return view
 
     def example_5_multiple_destinations(self) -> ExampleView:
+        view = self._begin(5, "UNSTRING WITH MULTIPLE DELIMITERS INTO MULTIPLE DESTINATIONS")
         self._display()
         self._display(RULE)
         self._display("EX 5 : UNSTRING WITH MULTIPLE DELIMITERS INTO MULTIPLE DESTINATIONS")
 
         self.ws.source_str = self.multi_dest_source
-        view = self._begin(
-            5, "UNSTRING WITH MULTIPLE DELIMITERS INTO MULTIPLE DESTINATIONS", self.ws.source_str
-        )
+        view.source = from_byte_string(self.ws.source_str)
         self._display()
         self._display("SOURCE STRING: " + self.ws.source_str)
 
@@ -345,6 +343,7 @@ class Program:
         return view
 
     def example_6_formatted_number(self) -> ExampleView:
+        view = self._begin(6, "UNSTRING FORMATTED NUMBER")
         self._display()
         self._display(RULE)
         self._display("EX 6 : UNSTRING FORMATTED NUMBER")
@@ -352,7 +351,7 @@ class Program:
 
         self.ws.source_num = self.source_num
         edited = format_source_num(self.source_num)
-        view = self._begin(6, "UNSTRING FORMATTED NUMBER", edited)
+        view.source = edited
         self._display("SOURCE VALUE: " + edited)
 
         result = unstring(
