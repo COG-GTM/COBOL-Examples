@@ -10,13 +10,14 @@ import math
 from pathlib import Path
 from typing import Annotated, Any, Final, Literal
 
-from fastapi import Body, FastAPI, HTTPException, Query
+from fastapi import Body, FastAPI, HTTPException, Query, Request, Response
 from fastapi import Path as PathParam
-from fastapi.responses import FileResponse, PlainTextResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
+from starlette.middleware.base import RequestResponseEndpoint
 
-from app.cobol_types import to_byte_string, to_bytes
+from app.cobol_types import from_byte_string, to_byte_string, to_bytes
 from app.merge_sort import (
     MSG_OPEN_MERGED_FAILED,
     MSG_OPEN_OUTPUT_FAILED,
@@ -49,6 +50,26 @@ app = FastAPI(
 )
 
 store: RunStore = InMemoryRunStore()
+
+# Content type for the byte-exact endpoints: the bodies are the program's own bytes.
+RAW_MEDIA_TYPE: Final = "text/plain; charset=utf-8"
+
+
+@app.middleware("http")
+async def limit_body_size(request: Request, call_next: RequestResponseEndpoint) -> Response:
+    """Reject an oversized body before anything parses or buffers it.
+
+    ``MAX_INPUT_BYTES`` is enforced twice on purpose: here against the whole HTTP body
+    (JSON syntax and escaping included), and again in :func:`create_run` against the decoded
+    file content, which is what the record cap is expressed in.
+    """
+    declared = request.headers.get("content-length")
+    if declared is not None and declared.isdigit() and int(declared) > MAX_INPUT_BYTES:
+        return JSONResponse(
+            status_code=413,
+            content={"detail": f"Request body exceeds {MAX_INPUT_BYTES} bytes."},
+        )
+    return await call_next(request)
 
 
 class RunRequest(BaseModel):
@@ -143,7 +164,7 @@ def _summary(run_id: str, run: MergeSortRun, *, generated: bool | None = None) -
         record_count=len(run.merged_records),
         merged_count=len(run.merged_records),
         sorted_count=len(run.sorted_records),
-        console=run.console,
+        console=[from_byte_string(line) for line in run.console],
         file_statuses=_file_statuses(run),
         stopped_early=run.stopped_early,
     )
@@ -173,7 +194,7 @@ def _page(
 ) -> PageView:
     record_count = len(records)
     page_count = max(1, math.ceil(record_count / page_size))
-    if page > page_count and record_count:
+    if page > page_count:
         raise HTTPException(
             status_code=404,
             detail=f"Page {page} is past the last page ({page_count}).",
@@ -191,7 +212,9 @@ def _page(
         file_status=status,
         message=_status_message(status, failure_message),
         records=[_record_view(record) for record in window],
-        raw="".join(record.file_line() + "\n" for record in window),
+        # file_line() is one Python character per COBOL byte; decode before it is serialised,
+        # or the JSON encoder would UTF-8 encode an already-encoded byte string.
+        raw=from_byte_string("".join(record.file_line() + "\n" for record in window)),
     )
 
 
@@ -275,28 +298,37 @@ def get_sorted_contract_id(
     )
 
 
-@app.get("/api/runs/{run_id}/console", response_class=PlainTextResponse)
-def get_console(run_id: Annotated[str, PathParam()]) -> str:
+@app.get("/api/runs/{run_id}/console", response_class=Response)
+def get_console(run_id: Annotated[str, PathParam()]) -> Response:
     """The program's DISPLAY output, byte for byte."""
-    return _load(run_id).console_text()
+    return Response(
+        content=to_bytes(_load(run_id).console_text()),
+        media_type=RAW_MEDIA_TYPE,
+    )
 
 
-@app.get("/api/runs/{run_id}/files/{file_name}", response_class=PlainTextResponse)
+@app.get("/api/runs/{run_id}/files/{file_name}", response_class=Response)
 def get_file(
     run_id: Annotated[str, PathParam()],
     file_name: Annotated[
         Literal["test-file-1.txt", "test-file-2.txt", "merge-output.txt", "sorted-contract-id.txt"],
         PathParam(),
     ],
-) -> str:
-    """The raw line-sequential file the program wrote."""
+) -> Response:
+    """The raw line-sequential file the program wrote, byte for byte."""
     run = _load(run_id)
-    return {
+    body = {
         TEST_FILE_1: run.test_file_1,
         TEST_FILE_2: run.test_file_2,
         MERGE_OUTPUT: run.merge_output,
         SORTED_CONTRACT_ID: run.sorted_contract_id,
     }[file_name]
+    return Response(content=to_bytes(body), media_type=RAW_MEDIA_TYPE)
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+def favicon() -> FileResponse:
+    return FileResponse(STATIC_DIR / "favicon.svg", media_type="image/svg+xml")
 
 
 @app.get("/", include_in_schema=False)

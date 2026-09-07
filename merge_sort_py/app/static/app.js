@@ -12,8 +12,8 @@ const PANES = [
 const state = {
   runId: null,
   panes: {
-    "merge-output.txt": { page: 1, pageSize: 25, pageCount: 0, recordCount: 0 },
-    "sorted-contract-id.txt": { page: 1, pageSize: 25, pageCount: 0, recordCount: 0 },
+    "merge-output.txt": { page: 1, pageSize: 25, pageCount: 0, recordCount: 0, request: 0 },
+    "sorted-contract-id.txt": { page: 1, pageSize: 25, pageCount: 0, recordCount: 0, request: 0 },
   },
 };
 
@@ -154,14 +154,28 @@ function renderPane(file, page) {
 async function loadPane(file, page) {
   const pane = PANES.find((entry) => entry.file === file);
   const paneState = state.panes[file];
-  const url = `/api/runs/${state.runId}/${pane.path}?page=${page}&page_size=${paneState.pageSize}`;
+  // A pane load that started before the current run — or before a newer load of the same
+  // pane — must not paint: its records belong to a result the user has already left.
+  const runId = state.runId;
+  const request = ++paneState.request;
+  const stale = () => runId !== state.runId || request !== paneState.request;
+
+  const url = `/api/runs/${runId}/${pane.path}?page=${page}&page_size=${paneState.pageSize}`;
   const response = await fetch(url);
-  if (!response.ok) {
-    const detail = await response.json().catch(() => ({ detail: response.statusText }));
-    setError("#form-error", `${file}: ${detail.detail}`);
+  if (stale()) {
     return;
   }
-  renderPane(file, await response.json());
+  if (!response.ok) {
+    const detail = await response.json().catch(() => ({ detail: response.statusText }));
+    if (!stale()) {
+      setError("#form-error", `${file}: ${detail.detail}`);
+    }
+    return;
+  }
+  const body = await response.json();
+  if (!stale()) {
+    renderPane(file, body);
+  }
 }
 
 function resetPanes(message) {

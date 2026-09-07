@@ -140,6 +140,12 @@ GnuCOBOL slices at byte 5/55/105/110 regardless.
 `text.encode("utf-8").decode("latin-1")` before any slicing, and parity is compared as `bytes`.
 Fixture: `multibyte_utf8`.
 
+That representation must be undone at every API boundary or it leaks out double-encoded: JSON
+fields (`records[].*`, `PageView.raw`, `RunSummary.console`) are decoded back with
+`from_byte_string()`, and the byte-exact endpoints (`/console`, `/files/{name}`) return a
+`Response` built from `to_bytes()` rather than letting the framework UTF-8 encode a string that is
+already a byte sequence.
+
 ### D-008 — `file status` handling, and its HTTP mapping
 The program declares `file status` on all four files and checks it after each `open`, at three
 sites with three distinct literals:
@@ -179,6 +185,12 @@ The batch job is bounded by its input dataset; a public endpoint is not. The ser
 4 MiB per request and 20 000 records per run (`RecordLimitExceeded` → `413`) and bounds the run
 store to 32 runs (LRU). These are **additions**, not ported behaviour; a run that would exceed them
 is rejected, never silently truncated.
+
+4 MiB is enforced twice, because the two readings of "4 MiB per request" differ: middleware rejects
+a declared `Content-Length` above the cap before anything parses or buffers the body, and
+`create_run` re-checks the decoded file content, which is the figure the 20 000-record cap is
+expressed in. The LRU store is also lock-guarded — the batch job was single threaded, the service is
+not, and a lookup racing an eviction would otherwise fail a valid run id.
 
 ## 5. Console output
 

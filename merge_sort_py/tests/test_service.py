@@ -6,6 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app import service
+from app.cobol_types import from_byte_string, to_byte_string, to_bytes
 from app.service import app
 from app.store import InMemoryRunStore
 
@@ -154,3 +155,48 @@ def test_index_and_static_assets_are_served():
     assert "Bank Leumi" in client.get("/").text
     assert client.get("/static/styles.css").status_code == 200
     assert client.get("/static/app.js").status_code == 200
+    assert client.get("/favicon.ico").status_code == 200
+
+
+def test_multibyte_input_survives_every_output_boundary():
+    """The layout is applied to bytes (D-007), so the API must not re-encode them."""
+    name = "בנק לאומי"
+    padded = to_byte_string(name).ljust(50)
+    line = ("00001" + padded + "x".ljust(50) + "00001" + "c".ljust(25)).rstrip(" ")
+    supplied = from_byte_string(line) + "\n"
+
+    body = client.post("/api/runs", json={"test_file_1": supplied, "test_file_2": ""}).json()
+    run_id = body["run_id"]
+
+    page = client.get(f"/api/runs/{run_id}/merge-output").json()
+    assert page["records"][0]["last_name"] == name
+    assert page["raw"].startswith("00001" + name)
+    assert body["console"][1].startswith("00001" + name)
+
+    # The byte-exact endpoints must return the program's bytes, not a re-encoding of them.
+    raw = client.get(f"/api/runs/{run_id}/files/merge-output.txt").content
+    assert raw == to_bytes(line) + b"\n"
+    assert name.encode("utf-8") in client.get(f"/api/runs/{run_id}/console").content
+
+
+def test_page_past_the_last_page_is_404_even_for_an_empty_run():
+    empty = client.post("/api/runs", json={"test_file_1": "", "test_file_2": ""}).json()
+    assert client.get(f"/api/runs/{empty['run_id']}/merge-output?page=1").status_code == 200
+    assert client.get(f"/api/runs/{empty['run_id']}/merge-output?page=2").status_code == 404
+
+    run_id = generated_run()
+    assert client.get(f"/api/runs/{run_id}/merge-output?page=2&page_size=10").status_code == 200
+    assert client.get(f"/api/runs/{run_id}/merge-output?page=3&page_size=10").status_code == 404
+
+
+def test_oversized_body_is_rejected_before_it_is_parsed():
+    response = client.post(
+        "/api/runs",
+        content=b"{}",
+        headers={
+            "content-type": "application/json",
+            "content-length": str(service.MAX_INPUT_BYTES + 1),
+        },
+    )
+    assert response.status_code == 413
+    assert str(service.MAX_INPUT_BYTES) in response.json()["detail"]
