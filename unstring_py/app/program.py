@@ -24,7 +24,6 @@ from app.cobol_types import (
     display_unsigned,
     format_source_num,
     from_byte_string,
-    move_to_alphanumeric,
     move_to_byte_source,
     move_to_source_num,
     move_to_unsigned_int,
@@ -103,7 +102,8 @@ class Program:
         self.simple_source = move_to_byte_source(simple_source)
         self.multi_delim_source = move_to_byte_source(multi_delim_source)
         self.multi_dest_source = move_to_byte_source(multi_dest_source)
-        self.delimiter = move_to_alphanumeric(delimiter, 1)
+        # PIC X holds one *byte*, so the delimiter is byte-normalised like the sources.
+        self.delimiter = move_to_byte_source(delimiter, 1)
         self.source_num = source_num
         self.ws = WorkingStorage(delimiter=self.delimiter)
         self.console: list[str] = []

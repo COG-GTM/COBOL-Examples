@@ -20,6 +20,7 @@ const fields = {
 let defaults = null;
 let currentRun = null;
 let currentExample = 1;
+let latestRequest = 0;
 
 function setStatus(text, kind) {
   statusLine.textContent = text;
@@ -228,6 +229,7 @@ async function runProgram(event) {
     setStatus("ws-delimiter is PIC X: enter exactly one character.", "error");
     return;
   }
+  const request = ++latestRequest;
   setStatus("Running…");
   try {
     const response = await fetch("/api/runs", {
@@ -237,12 +239,17 @@ async function runProgram(event) {
     });
     if (!response.ok) {
       const detail = await response.json().catch(() => ({}));
+      if (request !== latestRequest) return;
       setStatus(`Request rejected: ${JSON.stringify(detail.detail || response.statusText)}`, "error");
       return;
     }
-    renderRun(await response.json());
+    const run = await response.json();
+    // A slower earlier submission must not overwrite the newest results.
+    if (request !== latestRequest) return;
+    renderRun(run);
     setStatus("Successfully unstrung.", "ok");
   } catch (error) {
+    if (request !== latestRequest) return;
     setStatus(`Service unavailable: ${error}`, "error");
   }
 }

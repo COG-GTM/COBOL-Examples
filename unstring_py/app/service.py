@@ -8,6 +8,7 @@ small adapter so a database can be dropped in later without touching the routes.
 
 from __future__ import annotations
 
+import threading
 from collections import OrderedDict
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
@@ -62,23 +63,29 @@ class RunStore:
     def __init__(self, capacity: int = MAX_RUNS) -> None:
         self._capacity = capacity
         self._runs: OrderedDict[str, dict[str, Any]] = OrderedDict()
+        # Synchronous routes run in a thread pool, so insertion, eviction and the
+        # lookup-then-promote in get() each have to be atomic.
+        self._lock = threading.Lock()
 
     def put(self, payload: dict[str, Any]) -> str:
         run_id = uuid4().hex
-        self._runs[run_id] = payload
-        self._runs.move_to_end(run_id)
-        while len(self._runs) > self._capacity:
-            self._runs.popitem(last=False)
+        with self._lock:
+            self._runs[run_id] = payload
+            self._runs.move_to_end(run_id)
+            while len(self._runs) > self._capacity:
+                self._runs.popitem(last=False)
         return run_id
 
     def get(self, run_id: str) -> dict[str, Any] | None:
-        payload = self._runs.get(run_id)
-        if payload is not None:
-            self._runs.move_to_end(run_id)
-        return payload
+        with self._lock:
+            payload = self._runs.get(run_id)
+            if payload is not None:
+                self._runs.move_to_end(run_id)
+            return payload
 
     def __len__(self) -> int:
-        return len(self._runs)
+        with self._lock:
+            return len(self._runs)
 
 
 store = RunStore()
@@ -106,13 +113,24 @@ def _amount(value: str) -> Decimal:
     return parsed
 
 
+def _decoded(value: Any) -> Any:
+    """Decode the port's latin-1 byte strings wherever they sit in a stats tree."""
+    if isinstance(value, str):
+        return from_byte_string(value)
+    if isinstance(value, dict):
+        return {key: _decoded(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [_decoded(item) for item in value]
+    return value
+
+
 def _view_payload(view: ExampleView) -> dict[str, Any]:
     return {
         "number": view.number,
         "title": view.title,
         "source": view.source,
         "lines": [from_byte_string(line) for line in view.lines],
-        "stats": view.stats,
+        "stats": _decoded(view.stats),
         "overflow": view.overflow,
     }
 

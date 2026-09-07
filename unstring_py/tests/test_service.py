@@ -102,3 +102,16 @@ def test_index_serves_the_leumi_ui():
     body = client.get("/").text
     assert "בנק לאומי" in body
     assert "app.js" in body
+
+
+def test_unicode_tokens_are_decoded_in_stats_not_just_transcripts():
+    body = client.post("/api/runs", json={"simple_source": "café world"}).json()
+    assert body["examples"][0]["stats"]["part_1"].startswith("café")
+
+
+def test_non_ascii_delimiter_is_byte_normalised_like_the_source():
+    """PIC X holds one byte, so a multi-byte delimiter keeps only its first byte."""
+    body = client.post("/api/runs", json={"multi_delim_source": "AB\u00a7CD", "delimiter": "\u00a7"}).json()
+    values = [row["value"] for row in body["examples"][3]["stats"]["iterations"]]
+    assert values[0].strip() == "AB"
+    assert values[1].strip("\x00 ").endswith("CD")
