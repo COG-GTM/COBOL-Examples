@@ -39,6 +39,10 @@
        01  ws-max-args                  pic 9(3) comp.
        01  ws-idx                       pic 9(3) comp.
 
+       01  ws-input-valid-sw            pic a value 'N'.
+           88  ws-input-valid           value 'Y'.
+           88  ws-input-invalid         value 'N'.
+
        procedure division.
        main-procedure.
 
@@ -141,7 +145,14 @@
       *> from the console.
            display "Enter value: " with no advancing
            accept ws-input from console
-           display "accept from console: " ws-input
+           perform validate-console-input
+           if ws-input-valid then
+               display "accept from console: " ws-input
+           else
+               display "accept from console: input rejected "
+                   "(only letters, digits and spaces are allowed)"
+               move spaces to ws-input
+           end-if
 
       *> After this point, the final ACCEPTs require screen mode so
       *> the screen will blank and text positions must be provied.
@@ -169,4 +180,20 @@
            display "Num cols: " at 0601 ws-num-cols-disp at 0614
 
            goback.
+
+      *> Console input is untrusted. Only allow letters, digits and
+      *> spaces so control characters or other unexpected content
+      *> cannot be passed through to later DISPLAY statements.
+       validate-console-input.
+           set ws-input-valid to true
+           perform varying ws-idx from 1 by 1
+           until ws-idx > length of ws-input
+           or ws-input-invalid
+               if ws-input(ws-idx:1) is not alphabetic
+               and ws-input(ws-idx:1) is not numeric then
+                   set ws-input-invalid to true
+               end-if
+           end-perform
+           exit paragraph.
+
        end program accept-from-example.

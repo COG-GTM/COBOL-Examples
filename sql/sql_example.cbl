@@ -72,9 +72,11 @@
 
       *> Local variables to the program only. These are not seen by 
       *> the precompiler operation.
+       78  ws-max-accounts                  value 100.
+
        01  ws-num-accounts                  pic 999 comp.
 
-       01  ws-account-record                occurs 0 to 100 times
+       01  ws-account-record                occurs 0 to ws-max-accounts times
                                             depending on ws-num-accounts                                            
                                             indexed by ws-account-idx.
            05  ws-account-id                pic 9(5).
@@ -121,6 +123,7 @@
                    ID, FIRST_NAME, LAST_NAME, PHONE, 
                    ADDRESS, IS_ENABLED, CREATE_DT, MOD_DT 
                FROM ACCOUNTS 
+               WHERE IS_ENABLED IN ('Y', 'N')
                ORDER BY ID;
            END-EXEC 
 
@@ -226,7 +229,8 @@
                perform check-sql-state
 
       *> If found, add to the output record table.
-               if not SQL-NODATA then 
+               if not SQL-NODATA 
+               and ws-num-accounts < ws-max-accounts then 
                    add 1 to ws-num-accounts
                    
                    move ws-sql-account-record 
@@ -278,7 +282,8 @@
                        :ws-sql-account-mod-dt;
                END-EXEC 
                perform check-sql-state
-               if not SQL-NODATA then 
+               if not SQL-NODATA 
+               and ws-num-accounts < ws-max-accounts then 
                    add 1 to ws-num-accounts
                    
                    move ws-sql-account-record 
@@ -368,7 +373,8 @@
                            :ws-sql-account-mod-dt;
                    END-EXEC 
                    perform check-sql-state
-                   if not SQL-NODATA then 
+                   if not SQL-NODATA 
+                   and ws-num-accounts < ws-max-accounts then 
                        add 1 to ws-num-accounts
                    
                        move ws-sql-account-record 
