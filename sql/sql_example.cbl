@@ -92,6 +92,13 @@
 
        01  ws-search-string                 pic x(48).     
 
+       01  ws-search-valid-sw               pic a value 'Y'.
+           88  ws-search-valid              value 'Y'.
+           88  ws-search-invalid            value 'N'.
+
+       01  ws-search-idx                    pic 99.
+       01  ws-search-char-code              pic 9(4) comp.
+
        01  ws-is-connected-sw               pic a value 'N'.
            88  ws-is-connected              value 'Y'.
            88  ws-is-disconnected           value 'N'.
@@ -121,7 +128,8 @@
                    ID, FIRST_NAME, LAST_NAME, PHONE, 
                    ADDRESS, IS_ENABLED, CREATE_DT, MOD_DT 
                FROM ACCOUNTS 
-               ORDER BY ID;
+               ORDER BY ID
+               LIMIT 100;
            END-EXEC 
 
            perform check-sql-state           
@@ -326,6 +334,13 @@
                display space 
                display "Enter search value: " with no advancing 
                accept ws-search-string
+
+               perform validate-search-input
+               if ws-search-invalid
+                   display "Search value contains invalid characters."
+                   set ws-search-again to false
+                   exit perform
+               end-if
            
       *> String trimmed user input into our search variable's text 
       *> value, adding the '%' wildcard characters at the start and 
@@ -390,6 +405,31 @@
                to ws-search-again-sw 
 
            end-perform 
+
+           exit paragraph.
+
+
+       validate-search-input.
+           move function trim(ws-search-string) to ws-search-string
+           set ws-search-valid to true
+
+           if function stored-char-length(ws-search-string) = 0
+               set ws-search-invalid to true
+           else
+               perform varying ws-search-idx from 1 by 1
+                   until ws-search-idx >
+                       function stored-char-length(ws-search-string)
+                   move function ord(ws-search-string(ws-search-idx:1))
+                       to ws-search-char-code
+                   if ws-search-char-code < 32
+                       or ws-search-char-code > 126
+                       or ws-search-char-code = 37
+                       or ws-search-char-code = 92
+                       or ws-search-char-code = 95
+                       set ws-search-invalid to true
+                   end-if
+               end-perform
+           end-if
 
            exit paragraph.
 
