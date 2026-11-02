@@ -25,6 +25,64 @@
        WORKING-STORAGE SECTION.
       **********************************************************************
       *******                EMBEDDED SQL VARIABLES                  *******
+       01 SQLV.
+           05 SQL-ARRSZ  PIC S9(9) COMP-5 VALUE 8.
+           05 SQL-COUNT  PIC S9(9) COMP-5 VALUE ZERO.
+           05 SQL-ADDR   POINTER OCCURS 8 TIMES VALUE NULL.
+           05 SQL-LEN    PIC S9(9) COMP-5 OCCURS 8 TIMES VALUE ZERO.
+           05 SQL-TYPE   PIC X OCCURS 8 TIMES.
+           05 SQL-PREC   PIC X OCCURS 8 TIMES.
+      **********************************************************************
+       01 SQL-STMT-0.
+           05 SQL-IPTR   POINTER VALUE NULL.
+           05 SQL-PREP   PIC X VALUE 'N'.
+           05 SQL-OPT    PIC X VALUE 'C'.
+           05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 2.
+           05 SQL-STMLEN PIC S9(4) COMP-5 VALUE 124.
+           05 SQL-STMT   PIC X(124) VALUE 'SELECT ID,FIRST_NAME,LAST_NAM
+      -    'E,PHONE,ADDRESS,IS_ENABLED,CREATE_DT,MOD_DT FROM ACCOUNTS WH
+      -    'ERE ID BETWEEN ? AND ? ORDER BY ID;'.
+           05 SQL-CNAME  PIC X(15) VALUE 'ACCOUNT-ALL-CUR'.
+           05 FILLER     PIC X VALUE LOW-VALUE.
+      **********************************************************************
+       01 SQL-STMT-1.
+           05 SQL-IPTR   POINTER VALUE NULL.
+           05 SQL-PREP   PIC X VALUE 'N'.
+           05 SQL-OPT    PIC X VALUE 'C'.
+           05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 0.
+           05 SQL-STMLEN PIC S9(4) COMP-5 VALUE 122.
+           05 SQL-STMT   PIC X(122) VALUE 'SELECT ID,FIRST_NAME,LAST_NAM
+      -    'E,PHONE,ADDRESS,IS_ENABLED,CREATE_DT,MOD_DT FROM ACCOUNTS WH
+      -    'ERE IS_ENABLED = ''N'' ORDER BY ID;'.
+           05 SQL-CNAME  PIC X(20) VALUE 'ACCOUNT-DISABLED-CUR'.
+           05 FILLER     PIC X VALUE LOW-VALUE.
+      **********************************************************************
+       01 SQL-STMT-2.
+           05 SQL-IPTR   POINTER VALUE NULL.
+           05 SQL-PREP   PIC X VALUE 'N'.
+           05 SQL-OPT    PIC X VALUE 'C'.
+           05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 4.
+           05 SQL-STMLEN PIC S9(4) COMP-5 VALUE 177.
+           05 SQL-STMT   PIC X(177) VALUE 'SELECT ID,FIRST_NAME,LAST_NAM
+      -    'E,PHONE,ADDRESS,IS_ENABLED,CREATE_DT,MOD_DT FROM ACCOUNTS WH
+      -    'ERE FIRST_NAME LIKE ? OR LAST_NAME LIKE ? OR PHONE LIKE ? OR
+      -    ' ADDRESS LIKE ? ORDER BY ID;'.
+           05 SQL-CNAME  PIC X(17) VALUE 'ACCOUNT-QUERY-CUR'.
+           05 FILLER     PIC X VALUE LOW-VALUE.
+      **********************************************************************
+      *******          PRECOMPILER-GENERATED VARIABLES               *******
+       01 SQLV-GEN-VARS.
+           05 SQL-VAR-0001  PIC S9(5) COMP-3.
+           05 SQL-VAR-0002  PIC S9(5) COMP-3.
+           05 SQL-VAR-0003  PIC S9(5) COMP-3.
+      *******       END OF PRECOMPILER-GENERATED VARIABLES           *******
+      **********************************************************************
+
+      *> SQL Communication Area: provides SQLCODE, SQLSTATE, SQLERRM,
+      *> SQLWARN and SQLERRD diagnostics used by check-sql-state.
+      *EXEC SQL
+      *    INCLUDE SQLCA
+      *END-EXEC.
        01 SQLCA.
            05 SQLSTATE PIC X(5).
               88  SQL-SUCCESS           VALUE '00000'.
@@ -35,56 +93,14 @@
               88  SQL-NULL-NO-IND       VALUE '22002'.
               88  SQL-INVALID-CURSOR-STATE VALUE '24000'.
            05 FILLER   PIC X.
-           05 SQLVERSN PIC 99 VALUE 02.
-           05 SQLCODE  PIC S9(9) COMP-5.
+           05 SQLVERSN PIC 99 VALUE 03.
+           05 SQLCODE  PIC S9(9) COMP-5 VALUE ZERO.
            05 SQLERRM.
-               49 SQLERRML PIC S9(4) COMP-5.
+               49 SQLERRML PIC S9(4) COMP-5 VALUE ZERO.
                49 SQLERRMC PIC X(486).
-           05 SQLERRD OCCURS 6 TIMES PIC S9(9) COMP-5.
-       01 SQLV.
-           05 SQL-ARRSZ  PIC S9(9) COMP-5 VALUE 8.
-           05 SQL-COUNT  PIC S9(9) COMP-5.
-           05 SQL-ADDR   POINTER OCCURS 8 TIMES.
-           05 SQL-LEN    PIC S9(9) COMP-5 OCCURS 8 TIMES.
-           05 SQL-TYPE   PIC X OCCURS 8 TIMES.
-           05 SQL-PREC   PIC X OCCURS 8 TIMES.
-      **********************************************************************
-       01 SQL-STMT-0.
-           05 SQL-IPTR   POINTER.
-           05 SQL-PREP   PIC X VALUE 'N'.
-           05 SQL-OPT    PIC X VALUE SPACE.
-           05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 0.
-           05 SQL-STMLEN PIC S9(4) COMP-5 VALUE 99.
-           05 SQL-STMT   PIC X(99) VALUE 'SELECT ID,FIRST_NAME,LAST_NAME
-      -    ',PHONE,ADDRESS,IS_ENABLED,CREATE_DT,MOD_DT FROM ACCOUNTS ORD
-      -    'ER BY ID;'.
-      **********************************************************************
-       01 SQL-STMT-1.
-           05 SQL-IPTR   POINTER.
-           05 SQL-PREP   PIC X VALUE 'N'.
-           05 SQL-OPT    PIC X VALUE SPACE.
-           05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 0.
-           05 SQL-STMLEN PIC S9(4) COMP-5 VALUE 122.
-           05 SQL-STMT   PIC X(122) VALUE 'SELECT ID,FIRST_NAME,LAST_NAM
-      -    'E,PHONE,ADDRESS,IS_ENABLED,CREATE_DT,MOD_DT FROM ACCOUNTS WH
-      -    'ERE IS_ENABLED = ''N'' ORDER BY ID;'.
-      **********************************************************************
-       01 SQL-STMT-2.
-           05 SQL-IPTR   POINTER.
-           05 SQL-PREP   PIC X VALUE 'N'.
-           05 SQL-OPT    PIC X VALUE SPACE.
-           05 SQL-PARMS  PIC S9(4) COMP-5 VALUE 4.
-           05 SQL-STMLEN PIC S9(4) COMP-5 VALUE 177.
-           05 SQL-STMT   PIC X(177) VALUE 'SELECT ID,FIRST_NAME,LAST_NAM
-      -    'E,PHONE,ADDRESS,IS_ENABLED,CREATE_DT,MOD_DT FROM ACCOUNTS WH
-      -    'ERE FIRST_NAME LIKE ? OR LAST_NAME LIKE ? OR PHONE LIKE ? OR
-      -    ' ADDRESS LIKE ? ORDER BY ID;'.
-      **********************************************************************
-      *******          PRECOMPILER-GENERATED VARIABLES               *******
-       01 SQLV-GEN-VARS.
-           05 SQL-VAR-0001  PIC S9(5) COMP-3.
-      *******       END OF PRECOMPILER-GENERATED VARIABLES           *******
-      **********************************************************************
+           05 SQLERRD OCCURS 6 TIMES PIC S9(9) COMP-5 VALUE ZERO.
+           05 FILLER   PIC X(4).
+           05 SQL-HCONN USAGE POINTER VALUE NULL.
 
       *> Variables inside the DECLARE SECTION can be used in
       *> SQL queries either as input or output. Variables outside of
@@ -128,6 +144,12 @@
            05  ws-search-value-len              pic S9(4) comp-5.
            05  ws-search-value-text             pic x(50).
       * WS-SEARCH-VALUE is accepted as VARCHAR(50)
+
+      *> Bounds for the "all accounts" query. The result set is limited
+      *> to this ID range so the query can never return the whole table
+      *> and never exceeds the capacity of ws-account-record.
+       01  ws-account-id-min                pic 9(5) value 1.
+       01  ws-account-id-max                pic 9(5) value 100.
 
       *EXEC SQL
       *    END DECLARE SECTION
@@ -189,6 +211,8 @@
       *            ID, FIRST_NAME, LAST_NAME, PHONE,
       *            ADDRESS, IS_ENABLED, CREATE_DT, MOD_DT
       *        FROM ACCOUNTS
+      *        WHERE ID BETWEEN :ws-account-id-min
+      *            AND :ws-account-id-max
       *        ORDER BY ID;
       *    END-EXEC
 
@@ -265,7 +289,8 @@
 
 
       *> Uses the ACCOUNT-ALL_CUR cursor to query the ACCOUNT table
-      *> for all records. If a record is found, it is moved into the
+      *> for all records within the configured ID range. If a record is
+      *> found, it is moved into the
       *> ws-account-record table array for display output.
        display-all-accounts.
 
@@ -274,11 +299,23 @@
       *        OPEN ACCOUNT-ALL-CUR
       *    END-EXEC
            IF SQL-PREP OF SQL-STMT-0 = 'N'
-               MOVE 0 TO SQL-COUNT
+               SET SQL-ADDR(1) TO ADDRESS OF
+                 SQL-VAR-0002
+               MOVE '3' TO SQL-TYPE(1)
+               MOVE 3 TO SQL-LEN(1)
+               MOVE X'00' TO SQL-PREC(1)
+               SET SQL-ADDR(2) TO ADDRESS OF
+                 SQL-VAR-0003
+               MOVE '3' TO SQL-TYPE(2)
+               MOVE 3 TO SQL-LEN(2)
+               MOVE X'00' TO SQL-PREC(2)
+               MOVE 2 TO SQL-COUNT
                CALL 'OCSQLPRE' USING SQLV
                                    SQL-STMT-0
                                    SQLCA
            END-IF
+           MOVE WS-ACCOUNT-ID-MIN TO SQL-VAR-0002
+           MOVE WS-ACCOUNT-ID-MAX TO SQL-VAR-0003
            CALL 'OCSQLOCU' USING SQL-STMT-0
                                SQLCA
            END-CALL
@@ -338,7 +375,9 @@
            CALL 'OCSQLFTC' USING SQLV
                                SQL-STMT-0
                                SQLCA
-           MOVE SQL-VAR-0001 TO WS-SQL-ACCOUNT-ID
+           IF SQLCODE = 0
+             MOVE SQL-VAR-0001 TO WS-SQL-ACCOUNT-ID
+           END-IF
                perform check-sql-state
 
       *> If found, add to the output record table.
@@ -441,7 +480,9 @@
            CALL 'OCSQLFTC' USING SQLV
                                SQL-STMT-1
                                SQLCA
-           MOVE SQL-VAR-0001 TO WS-SQL-ACCOUNT-ID
+           IF SQLCODE = 0
+             MOVE SQL-VAR-0001 TO WS-SQL-ACCOUNT-ID
+           END-IF
                perform check-sql-state
                if not SQL-NODATA then
                    add 1 to ws-num-accounts
@@ -596,7 +637,9 @@
            CALL 'OCSQLFTC' USING SQLV
                                SQL-STMT-2
                                SQLCA
-           MOVE SQL-VAR-0001 TO WS-SQL-ACCOUNT-ID
+           IF SQLCODE = 0
+             MOVE SQL-VAR-0001 TO WS-SQL-ACCOUNT-ID
+           END-IF
                    perform check-sql-state
                    if not SQL-NODATA then
                        add 1 to ws-num-accounts
@@ -706,11 +749,15 @@
 
        end program sql-example.
       **********************************************************************
+      *  : ESQL for GnuCOBOL/OpenCOBOL Version 3 (2024.11.27) Build Nov  2 2026
+
       *******               EMBEDDED SQL VARIABLES USAGE             *******
       *  .WS-DB-CONNECTION-STRING NOT IN USE
       *  ACCOUNT-ALL-CUR          IN USE CURSOR
       *  ACCOUNT-DISABLED-CUR     IN USE CURSOR
       *  ACCOUNT-QUERY-CUR        IN USE CURSOR
+      *  WS-ACCOUNT-ID-MAX        IN USE THROUGH TEMP VAR SQL-VAR-0003 DECIMAL(5,0)
+      *  WS-ACCOUNT-ID-MIN        IN USE THROUGH TEMP VAR SQL-VAR-0002 DECIMAL(5,0)
       *  WS-DB-CONNECTION-STRING     IN USE CHAR(1024)
       *  WS-SEARCH-VALUE          IN USE VARCHAR(50)
       *  WS-SEARCH-VALUE-LEN  NOT IN USE
