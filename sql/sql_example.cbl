@@ -24,6 +24,12 @@
 
        WORKING-STORAGE SECTION.
 
+      *> SQL Communication Area: provides SQLCODE, SQLSTATE, SQLERRM,
+      *> SQLWARN and SQLERRD diagnostics used by check-sql-state.
+       EXEC SQL
+           INCLUDE SQLCA
+       END-EXEC.
+
       *> Variables inside the DECLARE SECTION can be used in 
       *> SQL queries either as input or output. Variables outside of 
       *> this section are local to the program only.
@@ -65,6 +71,12 @@
        01  ws-search-value.
            05  ws-search-value-len              pic S9(4) comp-5.
            05  ws-search-value-text             pic x(50).
+
+      *> Bounds for the "all accounts" query. The result set is limited
+      *> to this ID range so the query can never return the whole table
+      *> and never exceeds the capacity of ws-account-record.
+       01  ws-account-id-min                pic 9(5) value 1.
+       01  ws-account-id-max                pic 9(5) value 100.
 
        EXEC SQL
            END DECLARE SECTION
@@ -121,6 +133,8 @@
                    ID, FIRST_NAME, LAST_NAME, PHONE, 
                    ADDRESS, IS_ENABLED, CREATE_DT, MOD_DT 
                FROM ACCOUNTS 
+               WHERE ID BETWEEN :ws-account-id-min 
+                   AND :ws-account-id-max
                ORDER BY ID;
            END-EXEC 
 
@@ -196,7 +210,8 @@
 
 
       *> Uses the ACCOUNT-ALL_CUR cursor to query the ACCOUNT table 
-      *> for all records. If a record is found, it is moved into the 
+      *> for all records within the configured ID range. If a record is
+      *> found, it is moved into the 
       *> ws-account-record table array for display output.
        display-all-accounts.
 

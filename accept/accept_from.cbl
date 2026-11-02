@@ -39,6 +39,9 @@
        01  ws-max-args                  pic 9(3) comp.
        01  ws-idx                       pic 9(3) comp.
 
+       01  ws-console-input             pic x(50).
+       01  ws-char-idx                  pic 9(3) comp.
+
        procedure division.
        main-procedure.
 
@@ -140,7 +143,20 @@
       *> FROM CONSOLE is the default if not specified. Reads user input
       *> from the console.
            display "Enter value: " with no advancing
-           accept ws-input from console
+           accept ws-console-input from console
+
+      *> Console input is untrusted. Only printable ASCII characters are
+      *> kept; anything else (control characters, escape sequences, etc.)
+      *> is replaced with a space before the value is used.
+           move spaces to ws-input
+           perform varying ws-char-idx from 1 by 1
+           until ws-char-idx > length of ws-console-input
+               if ws-console-input(ws-char-idx:1) >= space
+               and ws-console-input(ws-char-idx:1) <= "~"
+                   move ws-console-input(ws-char-idx:1)
+                   to ws-input(ws-char-idx:1)
+               end-if
+           end-perform
            display "accept from console: " ws-input
 
       *> After this point, the final ACCEPTs require screen mode so
