@@ -24,6 +24,12 @@
 
        WORKING-STORAGE SECTION.
 
+      *> SQL Communication Area: provides SQLCODE, SQLSTATE, SQLERRM,
+      *> SQLWARN and SQLERRD diagnostics used by check-sql-state.
+       EXEC SQL
+           INCLUDE SQLCA
+       END-EXEC.
+
       *> Variables inside the DECLARE SECTION can be used in 
       *> SQL queries either as input or output. Variables outside of 
       *> this section are local to the program only.
