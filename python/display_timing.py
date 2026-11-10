@@ -100,6 +100,8 @@ def main(argv=None) -> int:
     parser.add_argument("--runs", type=int, default=10, help="timed runs per method (default 10)")
     parser.add_argument("--refreshes", type=int, default=100, help="screen fills per run (default 100)")
     args = parser.parse_args(argv)
+    if args.runs < 1 or args.refreshes < 1:
+        parser.error("--runs and --refreshes must be at least 1")
 
     read_line("Press enter to start...")
     if is_interactive():
