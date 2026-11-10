@@ -33,7 +33,7 @@ def paint(stdscr) -> None:
        color_pair(7, 1) | curses.A_BOLD)
     try:
         while True:
-            at(stdscr, 19, 21, " ", color_pair(7, draw_color) | curses.A_REVERSE)
+            at(stdscr, 19, 21, " ", color_pair(7, draw_color))
             stdscr.refresh()
             try:
                 key = stdscr.get_wch()
@@ -55,7 +55,7 @@ def paint(stdscr) -> None:
             if state & curses.BUTTON1_RELEASED:
                 clicked = False
             if clicked and y < DRAW_ROWS and x < DRAW_COLS:
-                at(stdscr, y + 1, x + 1, " ", color_pair(7, draw_color) | curses.A_REVERSE)
+                at(stdscr, y + 1, x + 1, " ", color_pair(7, draw_color))
     finally:
         print("\033[?1003l", end="", flush=True)
 
