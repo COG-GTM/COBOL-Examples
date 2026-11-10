@@ -81,7 +81,6 @@ def accept_field(stdscr, line: int, column: int, size: int, *, echo: str = "text
         key = stdscr.get_wch() if _has_input(stdscr) else None
         if key is None:  # TIMEOUT expired
             break
-        stdscr.timeout(-1)
         if key in ("\n", "\r", curses.KEY_ENTER):
             break
         if key in (curses.KEY_BACKSPACE, "\b", "\x7f"):
