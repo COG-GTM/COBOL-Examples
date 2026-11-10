@@ -15,6 +15,11 @@ DRAW_ROWS = 18
 DRAW_COLS = 80
 
 
+def paint_attr(color: int) -> int:
+    """Background colour for a painted cell; reverse video on monochrome terminals."""
+    return color_pair(7, color) if curses.has_colors() else curses.A_REVERSE
+
+
 def paint(stdscr) -> None:
     curses.curs_set(0)
     if curses.has_colors():
@@ -33,7 +38,7 @@ def paint(stdscr) -> None:
        color_pair(7, 1) | curses.A_BOLD)
     try:
         while True:
-            at(stdscr, 19, 21, " ", color_pair(7, draw_color))
+            at(stdscr, 19, 21, " ", paint_attr(draw_color))
             stdscr.refresh()
             try:
                 key = stdscr.get_wch()
@@ -55,7 +60,7 @@ def paint(stdscr) -> None:
             if state & curses.BUTTON1_RELEASED:
                 clicked = False
             if clicked and y < DRAW_ROWS and x < DRAW_COLS:
-                at(stdscr, y + 1, x + 1, " ", color_pair(7, draw_color))
+                at(stdscr, y + 1, x + 1, " ", paint_attr(draw_color))
     finally:
         print("\033[?1003l", end="", flush=True)
 
